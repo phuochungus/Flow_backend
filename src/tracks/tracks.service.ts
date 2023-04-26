@@ -15,7 +15,7 @@ export class TracksService {
 
   create(createTrackDto: CreateTrackDto) {}
 
-  async findOneOrCreateIfNotExist(queryTrackDto: QueryTrackDTO) {
-    return this.spotifyApiService.searchInSpotify(queryTrackDto);
+  async findOneOrCreateIfNotExist(queryString: string) {
+    return this.spotifyApiService.searchInSpotify(queryString);
   }
 }

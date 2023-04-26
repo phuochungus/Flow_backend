@@ -12,6 +12,7 @@ import { AlbumsModule } from './albums/albums.module';
 import { ArtistsModule } from './artists/artists.module';
 import { PlayerService } from './player/player.service';
 import { PlayerModule } from './player/player.module';
+import { NhaccuatuiApiModule } from './nhaccuatui-api/nhaccuatui-api.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PlayerModule } from './player/player.module';
     AlbumsModule,
     ArtistsModule,
     PlayerModule,
+    NhaccuatuiApiModule,
   ],
   controllers: [AppController],
   providers: [AppService, PlayerService],

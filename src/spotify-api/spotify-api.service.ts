@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
-import QueryTrackDTO from 'src/tracks/dto/query-track.dto';
-import levenshtein from 'fast-levenshtein';
 import { extend } from 'lodash';
-import FuzzyMatching from 'fuzzy-matching';
-
-import e from 'express';
 import distance from 'jaro-winkler';
-
+import { NhaccuatuiApiService } from 'src/nhaccuatui-api/nhaccuatui-api.service';
 @Injectable()
 export class SpotifyApiService {
-  constructor() {
+  constructor(private readonly nhaccuatuiApiService: NhaccuatuiApiService) {
     this.requestAccessToken();
     setInterval(this.requestAccessToken, 3300000);
   }
@@ -25,12 +20,12 @@ export class SpotifyApiService {
     });
   }
 
-  async searchInSpotify(queryTrackDto: QueryTrackDTO): Promise<any> {
+  async searchInSpotify(queryString: string, page: number = 0): Promise<any> {
     try {
       const res = await this.spotifyWebApi.search(
-        queryTrackDto.searchString,
+        queryString,
         ['track', 'album', 'artist'],
-        { market: 'VN' },
+        { market: 'VN', limit: 15, offset: page * 15 },
       );
 
       let albumRes = await this.spotifyWebApi.getAlbums(
@@ -74,7 +69,7 @@ export class SpotifyApiService {
       let mostRelevantResults = [...tracks, ...artists, ...albums];
       this.calculateAndNormalizeLevenshteinDistance(
         mostRelevantResults,
-        queryTrackDto.searchString,
+        queryString,
       );
 
       mostRelevantResults.sort(
@@ -124,13 +119,38 @@ export class SpotifyApiService {
     }[],
     searchString: string,
   ) {
-    let array = mostRelevantResults.map((e) => {
-      return e.name;
-    });
     for (let index in mostRelevantResults) {
       extend(mostRelevantResults[index], {
         score: distance(searchString, mostRelevantResults[index].name),
       });
+    }
+  }
+
+  async findOne(id: string): Promise<any> {
+    try {
+      const res = await this.spotifyWebApi.getTrack(id);
+      const songName = res.body.name;
+      const songArtists = res.body.artists.map((e) => {
+        return e.name;
+      });
+
+      const res2 = await this.nhaccuatuiApiService.getSongByNameAndArtist(
+        songName,
+        songArtists,
+      );
+      const res3 = await this.nhaccuatuiApiService.getSong(res2.id);
+      const res4 = await this.nhaccuatuiApiService.getLyric(res2.id);
+      return {
+        id,
+        name: res.body.name,
+        artists: res.body.artists.map((e) => {
+          return { name: e.name, id: e.id };
+        }),
+        ...res3,
+        ...res4,
+      };
+    } catch (error) {
+      console.log(error);
     }
   }
 }
