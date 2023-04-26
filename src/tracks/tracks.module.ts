@@ -4,11 +4,13 @@ import { TracksController } from './tracks.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Track, TrackSchema } from './schemas/track.schema';
 import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
+import { NhaccuatuiApiModule } from 'src/nhaccuatui-api/nhaccuatui-api.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Track.name, schema: TrackSchema }]),
     SpotifyApiModule,
+    NhaccuatuiApiModule,
   ],
   controllers: [TracksController],
   providers: [TracksService],

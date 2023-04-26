@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import distance from 'jaro-winkler';
 import { difference } from 'lodash';
 import arc4 from 'arc4';
+import { retry } from 'rxjs';
 
 @Injectable()
 export class NhaccuatuiApiService {
@@ -51,7 +52,7 @@ export class NhaccuatuiApiService {
     return { streamUrl: res.data.song.streamUrls[0].streamUrl };
   }
 
-  async getLyric(id: string): Promise<{ lyric: string }> {
+  async getLyric(id: string) {
     let res = await this.httpService.axiosRef.get(
       process.env.NhacCuaTui_ENDPOINT + '/lyric',
       {
@@ -63,6 +64,6 @@ export class NhaccuatuiApiService {
     let cipher = arc4('arc4', process.env.SECRET_DECRYPT);
 
     let decode = cipher.decodeString(file.data, 'hex', 'ascii');
-    return { lyric: decode };
+    return Buffer.from(decode);
   }
 }
