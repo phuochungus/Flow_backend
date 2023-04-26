@@ -139,7 +139,6 @@ export class SpotifyApiService {
         songArtists,
       );
       const res3 = await this.nhaccuatuiApiService.getSong(res2.id);
-      const res4 = await this.nhaccuatuiApiService.getLyric(res2.id);
       return {
         id,
         name: res.body.name,
@@ -147,7 +146,7 @@ export class SpotifyApiService {
           return { name: e.name, id: e.id };
         }),
         ...res3,
-        ...res4,
+        nhaccuatuiId: res2.id,
       };
     } catch (error) {
       console.log(error);
