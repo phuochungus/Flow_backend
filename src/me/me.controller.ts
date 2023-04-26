@@ -1,34 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { MeService } from './me.service';
-import { CreateMeDto } from './dto/create-me.dto';
-import { UpdateMeDto } from './dto/update-me.dto';
+import JWTAuthGuard from 'src/auth/guards/jwt.guard';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { PlayerService } from 'src/player/player.service';
+import QueryTrackDTO from 'src/tracks/dto/query-track.dto';
 
 @Controller('me')
+@UseGuards(JWTAuthGuard)
 export class MeController {
-  constructor(private readonly meService: MeService) {}
+  constructor(
+    private readonly meService: MeService,
+    private readonly playerService: PlayerService,
+  ) {}
 
-  @Post()
-  create(@Body() createMeDto: CreateMeDto) {
-    return this.meService.create(createMeDto);
+  @Get('/profile')
+  getProfile(@CurrentUser() user: any) {
+    return user;
   }
 
-  @Get()
-  findAll() {
-    return this.meService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.meService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMeDto: UpdateMeDto) {
-    return this.meService.update(+id, updateMeDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.meService.remove(+id);
+  @Post('/play')
+  playTracks(@CurrentUser() user: any, @Body() queryTrackDto: QueryTrackDTO) {
+    // this.playerService.playTrack(user, queryTrackDto);
   }
 }
