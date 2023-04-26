@@ -1,6 +1,10 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsString, Min } from 'class-validator';
 
 export default class QueryTrackDTO {
   @IsString()
-  searchString: string;
+  query: string;
+
+  @IsNumber()
+  @Min(0)
+  page: number = 0;
 }
