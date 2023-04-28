@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { extend } from 'lodash';
 import distance from 'jaro-winkler';
-import { NhaccuatuiApiService } from 'src/nhaccuatui-api/nhaccuatui-api.service';
 @Injectable()
 export class SpotifyApiService {
-  constructor(private readonly nhaccuatuiApiService: NhaccuatuiApiService) {
+  constructor() {
     this.requestAccessToken();
     setInterval(this.requestAccessToken, 3300000);
   }
@@ -66,38 +65,26 @@ export class SpotifyApiService {
         };
       });
 
-      let mostRelevantResults = [...tracks, ...artists, ...albums];
-      this.calculateAndNormalizeLevenshteinDistance(
-        mostRelevantResults,
-        queryString,
-      );
+      let mostRelevantResults: {
+        type: string;
+        popularity: number;
+        name: string;
+        id: string;
+        score?: number;
+      }[] = [...tracks, ...artists, ...albums];
 
-      mostRelevantResults.sort(
-        (
-          n1: {
-            type: string;
-            popularity: number;
-            name: string;
-            id: string;
-            score?: number;
-          },
-          n2: {
-            type: string;
-            popularity: number;
-            name: string;
-            id: string;
-            score?: number;
-          },
-        ) => {
-          if (n1.score && n2.score) {
-            const n1Score = (n1.popularity * 5) / 100 + 5 * n1.score;
-            const n2Score = (n2.popularity * 5) / 100 + 5 * n2.score;
-            if (n1Score < n2Score) return 1;
-            else if (n1Score > n2Score) return -1;
-            return 0;
-          }
-        },
-      );
+      this.calculateScore(mostRelevantResults, queryString);
+
+      mostRelevantResults.sort((n1, n2) => {
+        if (n1.score && n2.score) {
+          const n1Score = (n1.popularity * 5) / 100 + 5 * n1.score;
+          const n2Score = (n2.popularity * 5) / 100 + 5 * n2.score;
+          if (n1Score < n2Score) return 1;
+          else if (n1Score > n2Score) return -1;
+          return 0;
+        }
+        return 0;
+      });
 
       return {
         mostRelevantResults,
@@ -110,7 +97,7 @@ export class SpotifyApiService {
     }
   }
 
-  calculateAndNormalizeLevenshteinDistance(
+  calculateScore(
     mostRelevantResults: {
       type: string;
       popularity: number;
@@ -126,30 +113,20 @@ export class SpotifyApiService {
     }
   }
 
-  async findOne(id: string): Promise<any> {
-    try {
-      const res = await this.spotifyWebApi.getTrack(id);
-      const songName = res.body.name;
-      const songArtists = res.body.artists.map((e) => {
-        return e.name;
-      });
-
-      const res2 = await this.nhaccuatuiApiService.getSongByNameAndArtist(
-        songName,
-        songArtists,
-      );
-      const res3 = await this.nhaccuatuiApiService.getSong(res2.id);
-      return {
-        id,
-        name: res.body.name,
-        artists: res.body.artists.map((e) => {
-          return { name: e.name, id: e.id };
-        }),
-        ...res3,
-        nhaccuatuiId: res2.id,
-      };
-    } catch (error) {
-      console.log(error);
-    }
+  async findOne(id: string): Promise<{
+    id: string;
+    name: string;
+    images: SpotifyApi.ImageObject[];
+    artists: { id: string; name: string }[];
+  }> {
+    const response = (await this.spotifyWebApi.getTrack(id)).body;
+    return {
+      id: response.id,
+      name: response.name,
+      images: response.album.images,
+      artists: response.artists.map((e) => {
+        return { id: e.name, name: e.name };
+      }),
+    };
   }
 }
