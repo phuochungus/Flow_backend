@@ -8,16 +8,7 @@ export class Track {
   spotifyId: string;
 
   @Prop()
-  name: string;
-
-  @Prop()
-  streamURL: string;
-
-  @Prop()
-  pictureURL: string;
-
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Artist' }] })
-  artists: Types.ObjectId[];
+  nhaccuatuiId: string;
 }
 
 export const TrackSchema = SchemaFactory.createForClass(Track);

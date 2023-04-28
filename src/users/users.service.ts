@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
@@ -17,7 +17,7 @@ export class UsersService {
     if (createUserDto.password)
       createUserDto.password = hashSync(
         createUserDto.password,
-        process.env.SALT,
+        process.env.SALT || 12,
       );
 
     const createdUser = new this.userModel(createUserDto);
@@ -36,7 +36,7 @@ export class UsersService {
     usernameOrEmail: string,
     password: string,
   ) {
-    let account: User & { _id: Types.ObjectId };
+    let account: (User & { _id: Types.ObjectId }) | null;
 
     if (isEmail(usernameOrEmail)) {
       account = await this.userModel.findOne({ email: usernameOrEmail }).lean();
@@ -45,6 +45,7 @@ export class UsersService {
         .findOne({ username: usernameOrEmail })
         .lean();
     }
-    return compareSync(password, account.password);
+    if (account) return compareSync(password, account.password);
+    throw new UnauthorizedException();
   }
 }
