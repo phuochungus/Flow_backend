@@ -56,7 +56,7 @@ export class TracksService {
       const file = createReadStream('audio.opus');
       file.pipe(response);
     } catch (error) {
-      console.log(error);
+      console.log(error);;
     }
   }
 }
