@@ -9,6 +9,11 @@ export class AppController {
     private spotifyService: SpotifyApiService,
   ) {}
 
+  @Get()
+  getHello() {
+    return 'Hello World!';
+  }
+
   @Post()
   async protected() {
     return await this.spotifyService.requestAccessToken();

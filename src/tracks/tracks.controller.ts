@@ -15,8 +15,8 @@ export class TracksController {
   }
 
   @Get('/play/:id')
-  async playTrack(@Param('id') id: string) {
-   return await this.tracksService.play(id);
+  async playTrack(@Res() response: any, @Param('id') id: string) {
+    return await this.tracksService.play(id, response);
   }
 
   // @Get('lyric/:id')

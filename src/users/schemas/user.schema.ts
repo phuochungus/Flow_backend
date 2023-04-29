@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 
 @Schema({ versionKey: false, timestamps: true })
 export class User {
@@ -15,11 +15,14 @@ export class User {
   @Prop()
   password: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Track' }] })
-  recentPlayed: Types.ObjectId[];
+  @Prop()
+  recentPlayed: ObjectId[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Artist' }] })
-  followingArtists: Types.ObjectId[];
+  @Prop()
+  followingArtists: ObjectId[];
+
+  @Prop()
+  favouriteAlbums: ObjectId[];
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
