@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MeService } from './me.service';
 import { MeController } from './me.controller';
-import { PlayerModule } from 'src/player/player.module';
+import { TracksModule } from 'src/tracks/tracks.module';
 
 @Module({
-  imports: [PlayerModule],
+  imports:[TracksModule],
   controllers: [MeController],
   providers: [MeService],
 })

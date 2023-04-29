@@ -7,11 +7,7 @@ import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Track.name, schema: TrackSchema }]),
-    SpotifyApiModule,
-    HttpModule,
-  ],
+  imports: [SpotifyApiModule],
   controllers: [TracksController],
   providers: [TracksService],
   exports: [TracksService],

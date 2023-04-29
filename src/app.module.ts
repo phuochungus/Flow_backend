@@ -10,8 +10,6 @@ import { SpotifyApiModule } from './spotify-api/spotify-api.module';
 import { TracksModule } from './tracks/tracks.module';
 import { AlbumsModule } from './albums/albums.module';
 import { ArtistsModule } from './artists/artists.module';
-import { PlayerService } from './player/player.service';
-import { PlayerModule } from './player/player.module';
 import { SearchModule } from './search/search.module';
 
 @Module({
@@ -25,10 +23,9 @@ import { SearchModule } from './search/search.module';
     TracksModule,
     AlbumsModule,
     ArtistsModule,
-    PlayerModule,
     SearchModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PlayerService],
+  providers: [AppService],
 })
 export class AppModule {}
