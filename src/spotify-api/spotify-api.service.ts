@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { extend } from 'lodash';
 import distance from 'jaro-winkler';
+import MusixMatch from 'musixmatch-richsync';
 @Injectable()
 export class SpotifyApiService {
   constructor() {
@@ -12,6 +13,10 @@ export class SpotifyApiService {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
   });
+
+  private mm = new MusixMatch([
+    process.env.MUSIXMATCH_API_KEY,
+  ]);
 
   async requestAccessToken() {
     this.spotifyWebApi.clientCredentialsGrant().then((data: any) => {
@@ -116,6 +121,7 @@ export class SpotifyApiService {
   async findOne(id: string): Promise<{
     id: string;
     name: string;
+    type: string;
     images: SpotifyApi.ImageObject[];
     artists: { id: string; name: string }[];
   }> {
@@ -123,10 +129,20 @@ export class SpotifyApiService {
     return {
       id: response.id,
       name: response.name,
+      type: 'track',
       images: response.album.images,
       artists: response.artists.map((e) => {
-        return { id: e.name, name: e.name };
+        return { id: e.id, name: e.name };
       }),
     };
+  }
+
+  async getLyric(id: string) {
+    const ISRC = (await this.spotifyWebApi.getTrack(id)).body.external_ids.isrc;
+    const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
+
+    return body.map((e) => {
+      return { start: e.start, end: e.end, text: e.text };
+    });
   }
 }

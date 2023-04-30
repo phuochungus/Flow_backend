@@ -16,13 +16,16 @@ export class User {
   password: string;
 
   @Prop()
-  recentPlayed: ObjectId[];
+  recentlyPlayed: ObjectId[];
+
+  @Prop()
+  recentlySearch: ObjectId[];
 
   @Prop()
   followingArtists: ObjectId[];
 
   @Prop()
-  favouriteAlbums: ObjectId[];
+  favourites: ObjectId[];
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

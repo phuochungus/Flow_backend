@@ -1,7 +1,16 @@
-import { Controller, Get, Param, Res, StreamableFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TracksService } from './tracks.service';
-import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { Response } from 'express';
+import JWTAuthGuard from 'src/auth/guards/jwt.guard';
+import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
+import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 
 @Controller('tracks')
 export class TracksController {
@@ -11,8 +20,10 @@ export class TracksController {
   ) {}
 
   @Get('/track/:id')
+  @UseGuards(JWTAuthGuard)
+  @UseInterceptors(MarkUserFavouritesInterceptor)
   async findOne(@Param('id') id: string) {
-    return await this.spotifyApiService.findOne(id);
+    return await this.tracksService.getInfo(id);
   }
 
   @Get('/play/:id')
@@ -20,10 +31,8 @@ export class TracksController {
     return await this.tracksService.play(id, res);
   }
 
-  // @Get('lyric/:id')
-  // async getLyric(@Param('id') id: string) {
-  //   const { nhaccuatuiId } = await this.spotifyApiService.findOne(id);
-  //   const file = this.nhaccuatuiApiService.getLyricById(nhaccuatuiId);
-  //   return file;
-  // }
+  @Get('lyrics/:id')
+  async getLyric(@Param('id') id: string) {
+    return await this.spotifyApiService.getLyric(id);
+  }
 }

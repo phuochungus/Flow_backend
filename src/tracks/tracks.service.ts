@@ -15,8 +15,8 @@ export class TracksService implements OnModuleInit {
   async play(spotifyId: string, response: Response) {
     const track = await this.spotifyApiService.findOne(spotifyId);
     const result = await this.searchMusics(track.name);
-    const youtubeId = result[0].youtubeId;
 
+    const youtubeId = result[0].youtubeId;
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
     try {
       await youtubedl(youtubeUrl, {
@@ -26,9 +26,18 @@ export class TracksService implements OnModuleInit {
         output: 'audio',
       });
       const file = createReadStream('audio.opus');
+      response.setHeader('Content-Type', 'audio/ogg');
       file.pipe(response);
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async getInfo(id: string, user?: any) {
+    return await this.spotifyApiService.findOne(id);
+  }
+
+  getLyrics(id: string) {
+    this.spotifyApiService.findOne(id);
   }
 }
