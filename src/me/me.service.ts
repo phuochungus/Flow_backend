@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Response } from 'express';
 import { TracksService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class MeService {
   constructor(private readonly tracksService: TracksService) {}
 
-  async playTrack(user: any, id: string, response: any) {
+  async playTrack(user: any, id: string, response: Response) {
     await this.tracksService.play(id, response);
     let array: string[] = user.recentPlayed;
     if (array.includes(id)) {

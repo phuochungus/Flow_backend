@@ -1,69 +1,29 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
-import { MusicClient, MusicSongCompact } from 'youtubei';
-import { intersection, isEqual } from 'lodash';
 import youtubedl from 'youtube-dl-exec';
-import ffmpeg from 'fluent-ffmpeg';
 import { createReadStream } from 'fs';
-import ffmpegPath from '@ffmpeg-installer/ffmpeg';
-import { join } from 'path';
-import { existsSync } from 'fs';
-
-ffmpeg.setFfmpegPath(ffmpegPath.path);
-
+import { Response } from 'express';
 @Injectable()
 export class TracksService implements OnModuleInit {
   constructor(private readonly spotifyApiService: SpotifyApiService) {}
-  
-  onModuleInit() {
-    if (existsSync(join(process.cwd(), 'binaries', 'ffmpeg.exe'))) {
-      console.log('exist');
-    } else {
-      console.log('not exist');
-    }
+
+  private searchMusics: (query: string) => Promise<any>;
+  async onModuleInit() {
+    this.searchMusics = (await import('node-youtube-music')).searchMusics;
   }
 
-  private readonly music = new MusicClient();
-
-  async play(spotifyId: string, response: any) {
+  async play(spotifyId: string, response: Response) {
     const track = await this.spotifyApiService.findOne(spotifyId);
-    let youtubeId: string;
-    const shelves = await this.music.search(track.name);
-    const requiredArtists = track.artists
-      .map((e) => {
-        return e.name;
-      })
-      .sort();
-    for (let compact of shelves) {
-      if (compact.title == 'Songs') {
-        for (let index in compact.items) {
-          let song = compact.items[index] as MusicSongCompact;
-          const artists = song.artists
-            .map((e) => {
-              return e.name;
-            })
-            .sort();
-          if (
-            isEqual(artists, requiredArtists) ||
-            intersection(artists, requiredArtists)
-          ) {
-            youtubeId = song.id;
-            break;
-          }
-        }
-      }
-    }
+    const result = await this.searchMusics(track.name);
+    const youtubeId = result[0].youtubeId;
 
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
-
     try {
-      // console.log(join(process.cwd(), 'binaries', 'ffmpeg.exe'));
       await youtubedl(youtubeUrl, {
-        // ffmpegLocation: join(process.cwd(), 'binaries', 'ffmpeg.exe'),
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
-        output: 'audio.webm',
+        output: 'audio',
       });
       const file = createReadStream('audio.opus');
       file.pipe(response);
