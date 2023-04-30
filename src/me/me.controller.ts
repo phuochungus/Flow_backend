@@ -3,6 +3,7 @@ import { MeService } from './me.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
 import { TracksService } from 'src/tracks/tracks.service';
+import { Response } from 'express';
 
 @Controller('me')
 @UseGuards(JWTAuthGuard)
@@ -19,9 +20,9 @@ export class MeController {
 
   @Get('/play/:id')
   async playTrack(
-    @Res() response: any,
     @Param('id') id: string,
     @CurrentUser() user: any,
+    @Res({ passthrough: true }) response: Response,
   ) {
     await this.meService.playTrack(user, id, response);
   }

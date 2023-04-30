@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Res, StreamableFile } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
+import { Response } from 'express';
 
 @Controller('tracks')
 export class TracksController {
@@ -15,8 +16,8 @@ export class TracksController {
   }
 
   @Get('/play/:id')
-  async playTrack(@Res() response: any, @Param('id') id: string) {
-    return await this.tracksService.play(id, response);
+  async playTrack(@Res() res: Response, @Param('id') id: string) {
+    return await this.tracksService.play(id, res);
   }
 
   // @Get('lyric/:id')
