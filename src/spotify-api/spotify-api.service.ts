@@ -10,8 +10,8 @@ export class SpotifyApiService {
     setInterval(this.requestAccessToken, 3300000);
   }
   private spotifyWebApi: SpotifyWebApi = new SpotifyWebApi({
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   });
 
   private mm = new MusixMatch([
