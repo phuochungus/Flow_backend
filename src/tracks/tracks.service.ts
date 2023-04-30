@@ -57,9 +57,9 @@ export class TracksService implements OnModuleInit {
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
 
     try {
-      console.log(join(process.cwd(), 'binaries', 'ffmpeg.exe'));
+      // console.log(join(process.cwd(), 'binaries', 'ffmpeg.exe'));
       await youtubedl(youtubeUrl, {
-        ffmpegLocation: join(process.cwd(), 'binaries', 'ffmpeg.exe'),
+        // ffmpegLocation: join(process.cwd(), 'binaries', 'ffmpeg.exe'),
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
