@@ -47,12 +47,12 @@ export class TracksService {
 
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
     try {
-      console.log(join(process.cwd(), 'binaries\\ffmpeg.exe'));
+      console.log(join(process.cwd(), 'binaries', 'ffmpeg.exe'));
       await youtubedl(youtubeUrl, {
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
-        ffmpegLocation: join(process.cwd(), 'binaries\\ffmpeg.exe'),
+        ffmpegLocation: join(process.cwd(), 'binaries', 'ffmpeg.exe'),
         output: 'audio.webm',
       });
       const file = createReadStream('audio.opus');
