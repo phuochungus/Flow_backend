@@ -6,6 +6,7 @@ import youtubedl from 'youtube-dl-exec';
 import ffmpeg from 'fluent-ffmpeg';
 import { createReadStream } from 'fs';
 import ffmpegPath from '@ffmpeg-installer/ffmpeg';
+import { join } from 'path';
 
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
@@ -46,11 +47,12 @@ export class TracksService {
 
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
     try {
+      console.log(join(process.cwd(), 'binaries\\ffmpeg.exe'));
       await youtubedl(youtubeUrl, {
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
-        ffmpegLocation: 'binaries/ffmpeg.exe',
+        ffmpegLocation: join(process.cwd(), 'binaries\\ffmpeg.exe'),
         output: 'audio.webm',
       });
       const file = createReadStream('audio.opus');
