@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { MusicClient, MusicSongCompact } from 'youtubei';
 import { intersection, isEqual } from 'lodash';
@@ -7,12 +7,21 @@ import ffmpeg from 'fluent-ffmpeg';
 import { createReadStream } from 'fs';
 import ffmpegPath from '@ffmpeg-installer/ffmpeg';
 import { join } from 'path';
+import { existsSync } from 'fs';
 
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
 @Injectable()
-export class TracksService {
+export class TracksService implements OnModuleInit {
   constructor(private readonly spotifyApiService: SpotifyApiService) {}
+  
+  onModuleInit() {
+    if (existsSync(join(process.cwd(), 'binaries', 'ffmpeg.exe'))) {
+      console.log('exist');
+    } else {
+      console.log('not exist');
+    }
+  }
 
   private readonly music = new MusicClient();
 
@@ -46,6 +55,7 @@ export class TracksService {
     }
 
     const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
+
     try {
       console.log(join(process.cwd(), 'binaries', 'ffmpeg.exe'));
       await youtubedl(youtubeUrl, {
