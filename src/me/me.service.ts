@@ -1,36 +1,76 @@
 import { Injectable } from '@nestjs/common';
-import { Response } from 'express';
-import { TracksService } from 'src/tracks/tracks.service';
+import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 
 @Injectable()
 export class MeService {
-  constructor(private readonly tracksService: TracksService) {}
+  constructor(private readonly spotifyApiService: SpotifyApiService) {}
 
-  async playTrack(user: any, id: string, response: Response) {
-    await this.tracksService.play(id, response);
-    let array: string[] = user.recentPlayed;
+  async addToPlayHistory(user: any, id: string) {
+    let array: string[] = user.recentlyPlayed;
     if (array.includes(id)) {
-      user.recentPlayed = this.bubbleUp(array, id);
+      user.recentlyPlayed = this.bubbleUp(array, id);
       user.save();
     } else if (array.length < 15) {
-      user.recentPlayed.splice(0, 0, id);
+      user.recentlyPlayed.splice(0, 0, id);
       user.save();
     } else {
-      user.recentPlayed.splice(0, 0, id);
-      user.recentPlayed.pop();
+      user.recentlyPlayed.splice(0, 0, id);
+      user.recentlyPlayed.pop();
       user.save();
     }
   }
 
-  private bubbleUp(array: string[], id: string) {
-    for (let index in array) {
-      if (array[index] == id) {
-        for (let iterator = parseInt(index); iterator >= 1; iterator--) {
-          array[iterator] = array[iterator - 1];
+  addToSearchHistory(user: any, id: string) {
+    let array: string[] = user.recentlySearch;
+    if (array.includes(id)) {
+      user.recentlySearch = this.bubbleUp(array, id);
+      user.save();
+    } else if (array.length < 15) {
+      user.recentlySearch.splice(0, 0, id);
+      user.save();
+    } else {
+      user.recentlySearch.splice(0, 0, id);
+      user.recentlySearch.pop();
+      user.save();
+    }
+  }
+
+  removeFromSearchHistory(user: any, id: string) {
+    let ids: string[] = user.recentlySearch;
+    if (ids.includes(id)) {
+      for (let index in ids) {
+        if (ids[index] == id) {
+          for (
+            let index2 = parseInt(index);
+            index2 < ids.length - 1;
+            ++index2
+          ) {
+            ids[index2] = ids[index2 - 1];
+          }
+          ids.pop();
+          user.recentlyPlayed = ids;
+          user.save();
         }
-        array[0] = id;
       }
     }
-    return array;
+  }
+
+  private bubbleUp(ids: string[], id: string) {
+    for (let index in ids) {
+      if (ids[index] == id) {
+        for (let iterator = parseInt(index); iterator >= 1; iterator--) {
+          ids[iterator] = ids[iterator - 1];
+        }
+        ids[0] = id;
+      }
+    }
+    return ids;
+  }
+
+  displaySearchHistory(user: any) {
+    const ids: string[] = user.recentlySearch;
+    return ids.map(async (e) => {
+      return await this.spotifyApiService.findOne(e);
+    });
   }
 }

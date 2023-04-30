@@ -41,6 +41,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "jaro-winkler": "^0.2.8",
     "mongoose": "^7.0.5",
+    "musixmatch-richsync": "^1.0.1",
     "node-youtube-music": "^0.10.2",
     "passport": "^0.6.0",
     "passport-facebook": "^3.0.0",

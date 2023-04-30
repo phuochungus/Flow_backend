@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MeService } from './me.service';
 import { MeController } from './me.controller';
-import { TracksModule } from 'src/tracks/tracks.module';
+import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
 
 @Module({
-  imports:[TracksModule],
+  imports: [SpotifyApiModule],
   controllers: [MeController],
   providers: [MeService],
 })
