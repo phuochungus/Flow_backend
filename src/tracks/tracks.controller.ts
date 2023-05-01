@@ -35,4 +35,9 @@ export class TracksController {
   async getLyric(@Param('id') id: string) {
     return await this.spotifyApiService.getLyric(id);
   }
+
+  @Get('/top50')
+  async getTop50SongFromVietNam() {
+    return await this.spotifyApiService.getTop50TracksVietnam();
+  }
 }
