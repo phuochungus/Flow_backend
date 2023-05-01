@@ -73,4 +73,10 @@ export class MeService {
       return await this.spotifyApiService.findOne(e);
     });
   }
+
+  displayPlayHistory(user: any) {
+    const ids: string[] = user.recentlyPlayed;
+    return ids.map(async (e) => {
+      return await this.spotifyApiService.findOne(e);
+    });  }
 }
