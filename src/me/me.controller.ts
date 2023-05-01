@@ -25,6 +25,11 @@ export class MeController {
     return this.meService.displaySearchHistory(user);
   }
 
+  @Get('/search_history')
+  getFullInfoPlayHistory(@CurrentUser() user: any) {
+    return this.meService.displayPlayHistory(user);
+  }
+
   @Post('/search_history')
   addToSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
     this.meService.removeFromSearchHistory(user, idDto.id);
