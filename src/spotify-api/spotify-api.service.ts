@@ -152,6 +152,7 @@ export class SpotifyApiService {
       return {
         id: e.track.id,
         name: e.track.name,
+        images: e.track.album.images,
         artists: e.track.artists.map((e) => {
           return { id: e.id, name: e.name };
         }),
