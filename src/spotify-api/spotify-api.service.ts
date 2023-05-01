@@ -14,9 +14,7 @@ export class SpotifyApiService {
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   });
 
-  private mm = new MusixMatch([
-    process.env.MUSIXMATCH_API_KEY,
-  ]);
+  private mm = new MusixMatch([process.env.MUSIXMATCH_API_KEY]);
 
   async requestAccessToken() {
     this.spotifyWebApi.clientCredentialsGrant().then((data: any) => {
@@ -143,6 +141,21 @@ export class SpotifyApiService {
 
     return body.map((e) => {
       return { start: e.start, end: e.end, text: e.text };
+    });
+  }
+
+  async getTop50TracksVietnam() {
+    const PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
+    return (
+      await this.spotifyWebApi.getPlaylistTracks(PLAYLIST_ID)
+    ).body.items.map((e) => {
+      return {
+        id: e.track.id,
+        name: e.track.name,
+        artists: e.track.artists.map((e) => {
+          return { id: e.id, name: e.name };
+        }),
+      };
     });
   }
 }
