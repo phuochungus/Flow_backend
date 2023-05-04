@@ -22,7 +22,6 @@ export class TracksService {
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
-        audioFormat: 'opus',
         output: join(process.cwd(), 'audio', 'audio'),
       });
 
