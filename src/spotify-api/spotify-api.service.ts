@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
-import MusixMatch from 'musixmatch-richsync';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import Fuse from 'fuse.js';
@@ -27,8 +26,6 @@ export class SpotifyApiService {
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   });
-
-  private mm = new MusixMatch([process.env.MUSIXMATCH_API_KEY]);
 
   async requestAccessToken() {
     this.spotifyWebApi.clientCredentialsGrant().then((data: any) => {
