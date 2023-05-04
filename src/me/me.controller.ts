@@ -15,33 +15,43 @@ export class MeController {
   }
 
   @Get('/search_history')
-  getFullInfoSearchHistory(@CurrentUser() user: any): Promise<{
-    id: string;
-    name: string;
-    type: string;
-    images: SpotifyApi.ImageObject[];
-    artists: { id: string; name: string }[];
-  }>[] {
-    return this.meService.displaySearchHistory(user);
-  }
-
-  @Get('/search_history')
-  getFullInfoPlayHistory(@CurrentUser() user: any) {
-    return this.meService.displayPlayHistory(user);
+  async getFullInfoSearchHistory(@CurrentUser() user: any) {
+    return await this.meService.displaySearchHistory(user);
   }
 
   @Post('/search_history')
-  addToSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    this.meService.removeFromSearchHistory(user, idDto.id);
+  async addToSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
+    await this.meService.removeFromSearchHistory(user, idDto.id);
   }
 
   @Delete('/search_history')
-  removeFromSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    this.meService.addToSearchHistory(user, idDto.id);
+  async removeFromSearchHistory(
+    @CurrentUser() user: any,
+    @Body() idDto: IdDTO,
+  ) {
+    await this.meService.addToSearchHistory(user, idDto.id);
+  }
+
+  @Get('/play_history')
+  async getFullInfoPlayHistory(@CurrentUser() user: any) {
+    return await this.meService.displayPlayHistory(user);
   }
 
   @Post('/play_history')
-  addToPlayHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    this.meService.addToPlayHistory(user, idDto.id);
+  async addToPlayHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
+    await this.meService.addToPlayHistory(user, idDto.id);
+  }
+
+  @Post('/follow_artist')
+  async addToFollowingArtists(@CurrentUser() user: any, @Body() idDto: IdDTO) {
+    await this.meService.followArtist(user, idDto.id);
+  }
+
+  @Delete('/unfollow_artist')
+  async removeFromFollowingArtists(
+    @CurrentUser() user: any,
+    @Body() idDto: IdDTO,
+  ) {
+    await this.meService.unfollowArtist(user, idDto.id);
   }
 }

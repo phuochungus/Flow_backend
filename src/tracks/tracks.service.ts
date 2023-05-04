@@ -1,31 +1,32 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
 import { createReadStream } from 'fs';
 import { Response } from 'express';
-@Injectable()
-export class TracksService implements OnModuleInit {
-  constructor(private readonly spotifyApiService: SpotifyApiService) {}
+import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
+import { join } from 'path';
 
-  private searchMusics: (query: string) => Promise<any>;
-  async onModuleInit() {
-    this.searchMusics = (await import('node-youtube-music')).searchMusics;
-  }
+@Injectable()
+export class TracksService {
+  constructor(
+    private readonly spotifyApiService: SpotifyApiService,
+    private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
+  ) {}
 
   async play(spotifyId: string, response: Response) {
-    const track = await this.spotifyApiService.findOne(spotifyId);
-    const result = await this.searchMusics(track.name);
-
-    const youtubeId = result[0].youtubeId;
-    const youtubeUrl = 'https://www.youtube.com/watch?v=' + youtubeId;
+    const track = await this.spotifyApiService.findOneTrack(spotifyId);
+    const youtubeURL =
+      await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
     try {
-      await youtubedl(youtubeUrl, {
+      await youtubedl(youtubeURL, {
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
-        output: 'audio',
+        audioFormat: 'opus',
+        output: join(process.cwd(), 'audio', 'audio'),
       });
-      const file = createReadStream('audio.opus');
+
+      const file = createReadStream(join(process.cwd(), 'audio', 'audio.opus'));
       response.setHeader('Content-Type', 'audio/ogg');
       file.pipe(response);
     } catch (error) {
@@ -33,11 +34,7 @@ export class TracksService implements OnModuleInit {
     }
   }
 
-  async getInfo(id: string, user?: any) {
-    return await this.spotifyApiService.findOne(id);
-  }
-
-  getLyrics(id: string) {
-    this.spotifyApiService.findOne(id);
+  async getInfo(id: string) {
+    return await this.spotifyApiService.findOneTrackWithFormat(id);
   }
 }

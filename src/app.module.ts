@@ -11,6 +11,8 @@ import { TracksModule } from './tracks/tracks.module';
 import { AlbumsModule } from './albums/albums.module';
 import { ArtistsModule } from './artists/artists.module';
 import { SearchModule } from './search/search.module';
+import { YoutubeApiModule } from './youtube-api/youtube-api.module';
+import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { SearchModule } from './search/search.module';
     AlbumsModule,
     ArtistsModule,
     SearchModule,
+    YoutubeApiModule,
+    SpotifyToYoutubeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

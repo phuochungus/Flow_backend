@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { TracksController } from './tracks.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Track, TrackSchema } from './schemas/track.schema';
 import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
-import { HttpModule } from '@nestjs/axios';
+import { YoutubeApiModule } from 'src/youtube-api/youtube-api.module';
+import { SpotifyToYoutubeModule } from 'src/spotify-to-youtube/spotify-to-youtube.module';
 
 @Module({
-  imports: [SpotifyApiModule],
+  imports: [SpotifyApiModule, YoutubeApiModule, SpotifyToYoutubeModule],
   controllers: [TracksController],
   providers: [TracksService],
   exports: [TracksService],

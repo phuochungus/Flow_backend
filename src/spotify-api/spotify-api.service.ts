@@ -1,14 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { extend } from 'lodash';
 import distance from 'jaro-winkler';
 import MusixMatch from 'musixmatch-richsync';
+import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
+import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
+
 @Injectable()
 export class SpotifyApiService {
-  constructor() {
+  constructor(
+    private readonly youtubeApiService: YoutubeApiService,
+    private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
+  ) {
     this.requestAccessToken();
     setInterval(this.requestAccessToken, 3300000);
   }
+
   private spotifyWebApi: SpotifyWebApi = new SpotifyWebApi({
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -116,20 +123,26 @@ export class SpotifyApiService {
     }
   }
 
-  async findOne(id: string): Promise<{
+  async findOneTrack(id: string): Promise<SpotifyApi.SingleTrackResponse> {
+    return (await this.spotifyWebApi.getTrack(id)).body;
+  }
+
+  async findOneTrackWithFormat(id: string): Promise<{
     id: string;
     name: string;
     type: string;
+    duration_ms: number;
     images: SpotifyApi.ImageObject[];
     artists: { id: string; name: string }[];
   }> {
-    const response = (await this.spotifyWebApi.getTrack(id)).body;
+    const trackMetaInfo = (await this.spotifyWebApi.getTrack(id)).body;
     return {
-      id: response.id,
-      name: response.name,
+      id: trackMetaInfo.id,
+      name: trackMetaInfo.name,
       type: 'track',
-      images: response.album.images,
-      artists: response.artists.map((e) => {
+      duration_ms: trackMetaInfo.duration_ms,
+      images: trackMetaInfo.album.images,
+      artists: trackMetaInfo.artists.map((e) => {
         return { id: e.id, name: e.name };
       }),
     };
@@ -137,15 +150,19 @@ export class SpotifyApiService {
 
   async getLyric(id: string) {
     const ISRC = (await this.spotifyWebApi.getTrack(id)).body.external_ids.isrc;
-    const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
-
-    return body.map((e) => {
-      return { start: e.start, end: e.end, text: e.text };
-    });
+    try {
+      const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
+      return body.map((e) => {
+        return { start: e.start, end: e.end, text: e.text };
+      });
+    } catch (error) {
+      throw new NotFoundException();
+    }
   }
 
   async getTop50TracksVietnam() {
     const PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
+
     return (
       await this.spotifyWebApi.getPlaylistTracks(PLAYLIST_ID)
     ).body.items.map((e) => {
@@ -153,10 +170,70 @@ export class SpotifyApiService {
         id: e.track.id,
         name: e.track.name,
         images: e.track.album.images,
+        duration_ms: e.track.duration_ms,
         artists: e.track.artists.map((e) => {
           return { id: e.id, name: e.name };
         }),
       };
     });
+  }
+
+  async findArtistWithFormat(id: string) {
+    let res;
+    await Promise.all([
+      this.spotifyWebApi.getArtistAlbums(id),
+      this.spotifyWebApi.getArtist(id),
+      this.spotifyWebApi.getArtistRelatedArtists(id),
+      this.spotifyWebApi.getArtistTopTracks(id, 'VN'),
+    ]).then(async (value) => {
+      let topTracksPromises = value[3].body.tracks.map(async (e) => {
+        return {
+          id: e.id,
+          name: e.name,
+          images: e.album.images,
+          viewCount: await this.youtubeApiService.getViewCount(
+            await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(e),
+          ),
+        };
+      });
+
+      let topTracks;
+      await Promise.all(topTracksPromises).then((value) => {
+        topTracks = value;
+      });
+      res = {
+        id: value[1].body.id,
+        name: value[1].body.name,
+        topTracks,
+        albums: value[0].body.items.map((e) => {
+          return {
+            id: e.id,
+            name: e.name,
+            images: e.images,
+          };
+        }),
+        relatedArtists: value[2].body.artists.map((e) => {
+          return {
+            id: e.id,
+            name: e.name,
+            images: e.images,
+          };
+        }),
+      };
+    });
+    return res;
+  }
+
+  async getAlbumArtists(id: string) {
+    const tracks = (
+      await this.spotifyWebApi.getPlaylistTracks(id, { limit: 20 })
+    ).body;
+    const artistIds = new Set<string>();
+
+    tracks.items.forEach((e) => {
+      e.track.artists.forEach((artist) => artistIds.add(artist.id));
+    });
+    let artists = await this.spotifyWebApi.getArtists(Array.from(artistIds));
+    return artists.body.artists;
   }
 }
