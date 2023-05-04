@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
-import { extend } from 'lodash';
-import distance from 'jaro-winkler';
 import MusixMatch from 'musixmatch-richsync';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
+import Fuse from 'fuse.js';
+import { HttpService } from '@nestjs/axios';
 
+export type SearchItem = {
+  type: string;
+  popularity: number;
+  name: string;
+  id: string;
+};
 @Injectable()
 export class SpotifyApiService {
   constructor(
+    private readonly httpService: HttpService,
     private readonly youtubeApiService: YoutubeApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
   ) {
@@ -70,34 +77,27 @@ export class SpotifyApiService {
         return {
           type: 'artist',
           popularity: e.popularity,
+          images: e.images,
           name: e.name,
           id: e.id,
         };
       });
 
-      let mostRelevantResults: {
-        type: string;
-        popularity: number;
-        name: string;
-        id: string;
-        score?: number;
-      }[] = [...tracks, ...artists, ...albums];
+      artists = artists.filter((e) => e.images.length != 0);
+      artists = artists.filter((e) => e.popularity != 0);
+      let mostRelevantResults: SearchItem[] = [
+        ...tracks,
+        ...artists,
+        ...albums,
+      ];
 
-      this.calculateScore(mostRelevantResults, queryString);
-
-      mostRelevantResults.sort((n1, n2) => {
-        if (n1.score && n2.score) {
-          const n1Score = (n1.popularity * 5) / 100 + 5 * n1.score;
-          const n2Score = (n2.popularity * 5) / 100 + 5 * n2.score;
-          if (n1Score < n2Score) return 1;
-          else if (n1Score > n2Score) return -1;
-          return 0;
-        }
-        return 0;
-      });
+      const calculatedScoreArray = this.calculateScore(
+        mostRelevantResults,
+        queryString,
+      );
 
       return {
-        mostRelevantResults,
+        calculatedScoreArray,
         albums,
         tracks,
         artists,
@@ -107,20 +107,26 @@ export class SpotifyApiService {
     }
   }
 
-  calculateScore(
-    mostRelevantResults: {
-      type: string;
-      popularity: number;
-      name: string;
-      id: string;
-    }[],
+  private calculateScore(
+    mostRelevantResults: SearchItem[],
     searchString: string,
-  ) {
-    for (let index in mostRelevantResults) {
-      extend(mostRelevantResults[index], {
-        score: distance(searchString, mostRelevantResults[index].name),
-      });
-    }
+  ): SearchItem[] {
+    const fuse = new Fuse(mostRelevantResults, {
+      keys: ['name'],
+      includeScore: true,
+    });
+
+    let result = fuse.search(searchString);
+    result.sort((n1, n2) => {
+      const tmp = n1.score - n2.score;
+      if (tmp != 0) return tmp;
+      return n2.item.popularity - n1.item.popularity;
+    });
+    const originArray = result.map((e) => {
+      return e.item;
+    });
+    console.log(originArray);
+    return originArray;
   }
 
   async findOneTrack(id: string): Promise<SpotifyApi.SingleTrackResponse> {
@@ -148,16 +154,22 @@ export class SpotifyApiService {
     };
   }
 
-  async getLyric(id: string) {
-    const ISRC = (await this.spotifyWebApi.getTrack(id)).body.external_ids.isrc;
-    try {
-      const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
-      return body.map((e) => {
-        return { start: e.start, end: e.end, text: e.text };
-      });
-    } catch (error) {
-      throw new NotFoundException();
-    }
+  async getLyric(spotifyId: string) {
+    // const ISRC = (await this.spotifyWebApi.getTrack(id)).body.external_ids.isrc;
+    // try {
+    //   const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
+    //   return body.map((e) => {
+    //     return { start: e.start, end: e.end, text: e.text };
+    //   });
+    // } catch (error) {
+    //   throw new NotFoundException();
+    // }
+    const res = await this.httpService.axiosRef.get(
+      'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
+    );
+    return res.data.lines.map((e) => {
+      return { startTimeMs: e.startTimeMs, words: e.words };
+    });
   }
 
   async getTop50TracksVietnam() {

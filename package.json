@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
@@ -38,11 +37,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "crypto-js": "^4.1.1",
-    "fluent-ffmpeg": "^2.1.2",
     "fuse.js": "^6.6.2",
-    "jaro-winkler": "^0.2.8",
     "mongoose": "^7.0.5",
-    "musixmatch-richsync": "^1.0.1",
     "node-youtube-music": "^0.10.2",
     "passport": "^0.6.0",
     "passport-facebook": "^3.0.0",
@@ -51,13 +47,8 @@
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "spotify-to-ytmusic": "^1.2.5",
     "spotify-web-api-node": "^5.0.2",
-    "usetube": "^2.2.7",
-    "youtube-dl-exec": "^2.4.1",
-    "youtube-music-api": "^1.0.6",
-    "youtubei": "^1.1.2",
-    "youtubei.js": "^5.0.3"
+    "youtube-dl-exec": "^2.4.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -66,8 +57,6 @@
     "@types/bcrypt": "^5.0.0",
     "@types/crypto-js": "^4.1.1",
     "@types/express": "^4.17.13",
-    "@types/fast-levenshtein": "^0.0.2",
-    "@types/fluent-ffmpeg": "^2.1.21",
     "@types/jest": "29.5.0",
     "@types/node": "18.15.11",
     "@types/passport-facebook": "^2.1.11",

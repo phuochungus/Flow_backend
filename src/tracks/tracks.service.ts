@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadGatewayException,
+  BadRequestException,
+} from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
 import { createReadStream } from 'fs';
@@ -30,10 +34,16 @@ export class TracksService {
       file.pipe(response);
     } catch (error) {
       console.log(error);
+      throw new BadGatewayException();
     }
   }
 
   async getInfo(id: string) {
-    return await this.spotifyApiService.findOneTrackWithFormat(id);
+    try {
+      return await this.spotifyApiService.findOneTrackWithFormat(id);
+    } catch (error) {
+      if (error.body.error.status == 400) throw new BadRequestException();
+      throw new BadGatewayException();
+    }
   }
 }

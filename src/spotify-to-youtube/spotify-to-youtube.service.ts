@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import Fuse from 'fuse.js';
-import YoutubeMusicApi from 'youtube-music-api';
 
 export type YoutubeVideo = {
   youtubeId: string;
@@ -11,8 +10,6 @@ export type YoutubeVideo = {
 };
 @Injectable()
 export class SpotifyToYoutubeService implements OnModuleInit {
-  api = new YoutubeMusicApi();
-
   private searchMusics: (query: string) => Promise<any[]>;
 
   async onModuleInit() {
@@ -40,7 +37,6 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     if (searchResults.length == 0) throw new NotFoundException();
     const tmp1 = this.filterResults(searchResults, 'title', spotifyTrack.name);
     const tmp2 = this.filterResults(tmp1, 'album', spotifyTrack.album.name);
-    console.log(tmp2);
     return tmp2[0].youtubeId;
   }
 
