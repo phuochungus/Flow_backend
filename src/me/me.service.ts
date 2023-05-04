@@ -9,33 +9,29 @@ export class MeService {
     let array: string[] = user.recentlyPlayed;
     if (array.includes(id)) {
       user.recentlyPlayed = this.bubbleUp(array, id);
-      user.save();
     } else if (array.length < 15) {
       user.recentlyPlayed.splice(0, 0, id);
-      user.save();
     } else {
       user.recentlyPlayed.splice(0, 0, id);
       user.recentlyPlayed.pop();
-      user.save();
     }
+    await user.save();
   }
 
-  addToSearchHistory(user: any, id: string) {
+  async addToSearchHistory(user: any, id: string) {
     let array: string[] = user.recentlySearch;
     if (array.includes(id)) {
       user.recentlySearch = this.bubbleUp(array, id);
-      user.save();
     } else if (array.length < 15) {
       user.recentlySearch.splice(0, 0, id);
-      user.save();
     } else {
       user.recentlySearch.splice(0, 0, id);
       user.recentlySearch.pop();
-      user.save();
     }
+    await user.save();
   }
 
-  removeFromSearchHistory(user: any, id: string) {
+  async removeFromSearchHistory(user: any, id: string) {
     let ids: string[] = user.recentlySearch;
     if (ids.includes(id)) {
       for (let index in ids) {
@@ -49,7 +45,7 @@ export class MeService {
           }
           ids.pop();
           user.recentlyPlayed = ids;
-          user.save();
+          await user.save();
         }
       }
     }
@@ -67,16 +63,48 @@ export class MeService {
     return ids;
   }
 
-  displaySearchHistory(user: any) {
+  async displaySearchHistory(user: any) {
     const ids: string[] = user.recentlySearch;
-    return ids.map(async (e) => {
-      return await this.spotifyApiService.findOne(e);
+    const promises = ids.map(async (e) => {
+      return await this.spotifyApiService.findOneTrackWithFormat(e);
     });
+    let result: any[];
+    await Promise.all(promises).then((value) => {
+      result = value;
+    });
+    return result;
   }
 
-  displayPlayHistory(user: any) {
+  async displayPlayHistory(user: any) {
     const ids: string[] = user.recentlyPlayed;
-    return ids.map(async (e) => {
-      return await this.spotifyApiService.findOne(e);
-    });  }
+    const promises = ids.map(async (e) => {
+      return await this.spotifyApiService.findOneTrackWithFormat(e);
+    });
+    let result: {
+      id: string;
+      name: string;
+      type: string;
+      duration_ms: number;
+      images: SpotifyApi.ImageObject[];
+      artists: { id: string; name: string }[];
+    }[];
+    await Promise.all(promises).then((value) => {
+      result = value;
+    });
+    return result;
+  }
+
+  async followArtist(user: any, id: string) {
+    const array: string[] = user.followingArtists;
+    if (array.includes(id)) return;
+    user.followingArtists.push(id);
+    await user.save();
+    return;
+  }
+
+  async unfollowArtist(user: any, id: string) {
+    const index = user.followingArtists.indexOf(id);
+    if (index > -1) user.followingArtists.splice(id, 1);
+    await user.save();
+  }
 }
