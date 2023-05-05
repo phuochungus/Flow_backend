@@ -107,4 +107,16 @@ export class MeService {
     if (index > -1) user.followingArtists.splice(id, 1);
     await user.save();
   }
+
+  async addToFavourite(user: any, id: string) {
+    if (user.favourites.includes(id)) return;
+    user.favourites.push(id);
+    await user.save();
+  }
+
+  async removeFromFavourite(user: any, id: string) {
+    const index = user.favourites.indexOf(id);
+    if (index > -1) user.favourites.splice(id, 1);
+    await user.save();
+  }
 }
