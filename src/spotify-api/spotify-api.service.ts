@@ -4,6 +4,7 @@ import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import Fuse from 'fuse.js';
 import { HttpService } from '@nestjs/axios';
+import { abort } from 'process';
 
 export type SearchItem = {
   type: string;
@@ -152,15 +153,6 @@ export class SpotifyApiService {
   }
 
   async getLyric(spotifyId: string) {
-    // const ISRC = (await this.spotifyWebApi.getTrack(id)).body.external_ids.isrc;
-    // try {
-    //   const body = (await this.mm.getRichsyncLyrics(ISRC)).richsync_body;
-    //   return body.map((e) => {
-    //     return { start: e.start, end: e.end, text: e.text };
-    //   });
-    // } catch (error) {
-    //   throw new NotFoundException();
-    // }
     const res = await this.httpService.axiosRef.get(
       'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
     );
@@ -244,5 +236,30 @@ export class SpotifyApiService {
     });
     let artists = await this.spotifyWebApi.getArtists(Array.from(artistIds));
     return artists.body.artists;
+  }
+
+  async getOneAlbumWithFormat(id: string) {
+    const album = (await this.spotifyWebApi.getAlbum(id)).body;
+    return {
+      id: album.id,
+      type: 'album',
+      album_type: album.album_type,
+      name: album.name,
+      images: album.images,
+      artists: album.artists.map((e) => {
+        return { id: e.id, name: e.name };
+      }),
+      total_duration: album.tracks.items.reduce((accumulate, current) => {
+        return accumulate + current.duration_ms;
+      }, 0),
+      track: album.tracks.items.map((e) => {
+        return {
+          name: e.name,
+          artists: e.artists.map((e) => {
+            return { id: e.id, name: e.name };
+          }),
+        };
+      }),
+    };
   }
 }

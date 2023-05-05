@@ -54,4 +54,17 @@ export class MeController {
   ) {
     await this.meService.unfollowArtist(user, idDto.id);
   }
+
+  @Post('/favourite_albums')
+  async addToFavouriteAlbums(@CurrentUser() user: any, @Body() IdDTO: IdDTO) {
+    await this.meService.addToFavourite(user, IdDTO.id);
+  }
+
+  @Delete('/favourite_albums')
+  async removeFromFavouriteAlbums(
+    @CurrentUser() user: any,
+    @Body() IdDTO: IdDTO,
+  ) {
+    await this.meService.removeFromFavourite(user, IdDTO.id);
+  }
 }
