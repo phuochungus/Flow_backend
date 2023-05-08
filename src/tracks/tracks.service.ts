@@ -46,4 +46,16 @@ export class TracksService {
       throw new BadGatewayException();
     }
   }
+
+  async getTop50TracksVietnam() {
+    const TOP50_PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
+    return await this.spotifyApiService.getTop50TracksVietnam(
+      TOP50_PLAYLIST_ID,
+    );
+  }
+
+  // TODO: implement mapping from flow explore playlist to spotify playlist
+  async playPlaylist(genreName: string) {
+    throw new Error('Method not implemented.');
+  }
 }

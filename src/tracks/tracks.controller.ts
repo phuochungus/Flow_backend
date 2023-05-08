@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -11,6 +12,7 @@ import { Response } from 'express';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
+import ExplorePlaylistTrackDTO from './dto/explore-playlist-track.dto';
 
 @Controller('tracks')
 export class TracksController {
@@ -38,6 +40,13 @@ export class TracksController {
 
   @Get('/top50')
   async getTop50SongFromVietNam() {
-    return await this.spotifyApiService.getTop50TracksVietnam();
+    return await this.tracksService.getTop50TracksVietnam();
+  }
+
+  @Get('/explore')
+  async getTrackByGenre(@Body() explorePlaylistTrack: ExplorePlaylistTrackDTO) {
+    return await this.tracksService.playPlaylist(
+      explorePlaylistTrack.genreName,
+    );
   }
 }
