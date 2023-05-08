@@ -12,6 +12,7 @@ import JWTStrategy from './strategies/jwt.stategy';
 import { Mongoose } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import UserSchema, { User } from 'src/users/schemas/user.schema';
+import LocalStrategy from './strategies/local.strategy';
 
 @Module({
   imports: [
@@ -21,7 +22,13 @@ import UserSchema, { User } from 'src/users/schemas/user.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({ secret: process.env.JWT_SECRET }),
   ],
-  providers: [GoogleStrategy, FacebookStrategy, AuthService, JWTStrategy],
+  providers: [
+    GoogleStrategy,
+    FacebookStrategy,
+    AuthService,
+    JWTStrategy,
+    LocalStrategy,
+  ],
   controllers: [AuthController],
   exports: [],
 })

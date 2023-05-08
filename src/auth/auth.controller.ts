@@ -2,8 +2,8 @@ import { Controller, Get, UseGuards, Request, Post } from '@nestjs/common';
 import { FacebookAuthGuard } from './guards/facebook-oauth2.guard';
 import { GoogleAuthGuard } from './guards/google-oauth2.guard';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import JWTAuthGuard from './guards/jwt.guard';
+import LocalAuthGuard from './guards/local.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -33,5 +33,13 @@ export class AuthController {
   @UseGuards(FacebookAuthGuard)
   async redirectFacebook(@Request() req: any): Promise<any> {
     return await this.authService.findOneOrCreate(req.user);
+  }
+
+  @Post('/local')
+  @UseGuards(LocalAuthGuard)
+  login(@Request() req) {
+    return {
+      accessToken: this.authService.generateAccessToken(req.user._id),
+    };
   }
 }

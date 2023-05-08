@@ -11,7 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  private generateAccessToken(_id: string): string {
+  generateAccessToken(_id: string): string {
     return this.jwtService.sign({ _id });
   }
 
