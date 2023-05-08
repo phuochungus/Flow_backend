@@ -45,7 +45,7 @@ export class UsersService {
         .findOne({ username: usernameOrEmail })
         .lean();
     }
-    if (account) return compareSync(password, account.password);
+    if (account && compareSync(password, account.password)) return account;
     throw new UnauthorizedException();
   }
 }
