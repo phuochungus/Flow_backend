@@ -161,22 +161,20 @@ export class SpotifyApiService {
     });
   }
 
-  async getTop50TracksVietnam() {
-    const PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
-
-    return (
-      await this.spotifyWebApi.getPlaylistTracks(PLAYLIST_ID)
-    ).body.items.map((e) => {
-      return {
-        id: e.track.id,
-        name: e.track.name,
-        images: e.track.album.images,
-        duration_ms: e.track.duration_ms,
-        artists: e.track.artists.map((e) => {
-          return { id: e.id, name: e.name };
-        }),
-      };
-    });
+  async getTop50TracksVietnam(id: string) {
+    return (await this.spotifyWebApi.getPlaylistTracks(id)).body.items.map(
+      (e) => {
+        return {
+          id: e.track.id,
+          name: e.track.name,
+          images: e.track.album.images,
+          duration_ms: e.track.duration_ms,
+          artists: e.track.artists.map((e) => {
+            return { id: e.id, name: e.name };
+          }),
+        };
+      },
+    );
   }
 
   async findArtistWithFormat(id: string) {
