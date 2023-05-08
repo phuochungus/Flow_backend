@@ -21,7 +21,7 @@ export class MeController {
 
   @Post('/search_history')
   async addToSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    await this.meService.removeFromSearchHistory(user, idDto.id);
+    await this.meService.addToSearchHistory(user, idDto.id);
   }
 
   @Delete('/search_history')
@@ -29,7 +29,7 @@ export class MeController {
     @CurrentUser() user: any,
     @Body() idDto: IdDTO,
   ) {
-    await this.meService.addToSearchHistory(user, idDto.id);
+    await this.meService.removeFromSearchHistory(user, idDto.id);
   }
 
   @Get('/play_history')
