@@ -36,8 +36,12 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     );
     if (searchResults.length == 0) throw new NotFoundException();
     const tmp1 = this.filterResults(searchResults, 'title', spotifyTrack.name);
+
     const tmp2 = this.filterResults(tmp1, 'album', spotifyTrack.album.name);
-    return tmp2[0].youtubeId;
+
+    if (tmp2.length != 0) return tmp2[0].youtubeId;
+    if (tmp1.length != 0) return tmp1[0].youtubeId;
+    return searchResults[0].youtubeId;
   }
 
   private filterResults(
@@ -48,14 +52,10 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     const fuse = new Fuse<YoutubeVideo>(originArray, {
       keys: [fieldName],
       includeScore: true,
+      shouldSort: true,
     });
 
     const filterdArray = fuse.search(fieldValue);
-    filterdArray.sort((n1, n2) => {
-      const tmp = n1.score - n2.score;
-      if (tmp != 0) return tmp;
-      return n1.refIndex - n2.refIndex;
-    });
 
     const transformToOriginFormatArray = filterdArray.map((e) => {
       return e.item;
