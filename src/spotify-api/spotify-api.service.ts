@@ -4,14 +4,20 @@ import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import Fuse from 'fuse.js';
 import { HttpService } from '@nestjs/axios';
-import { abort } from 'process';
+import { Track } from 'src/tracks/entities/track.entity';
+import { Lyrics } from 'src/tracks/entities/lyrics.entity';
+import { Album, AlbumType, EntityType } from 'src/albums/entities/album.entity';
+import { Artist } from 'src/artists/entities/artist.entity';
+import { SearchResult } from 'src/search/dto/search-track.dto';
+import { SimplifiedAlbumWithPopularity } from 'src/albums/entities/simplified-album-for-search.dto';
+import { SimplifedTrackWithPopularity } from 'src/tracks/entities/simplify-track-for-search.dto';
+import { SimplifiedArtistWithPopulary } from 'src/artists/entities/simplified-artist-for-search.entity';
 
-export type SearchItem = {
-  type: string;
-  popularity: number;
-  name: string;
-  id: string;
-};
+export type SimplifiedEntity =
+  | SimplifedTrackWithPopularity
+  | SimplifiedAlbumWithPopularity
+  | SimplifiedArtistWithPopulary;
+
 @Injectable()
 export class SpotifyApiService {
   constructor(
@@ -23,7 +29,7 @@ export class SpotifyApiService {
     setInterval(this.requestAccessToken, 3300000);
   }
 
-  private spotifyWebApi: SpotifyWebApi = new SpotifyWebApi({
+  public spotifyWebApi: SpotifyWebApi = new SpotifyWebApi({
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   });
@@ -34,23 +40,29 @@ export class SpotifyApiService {
     });
   }
 
-  async searchInSpotify(queryString: string, page: number = 0): Promise<any> {
-    try {
-      const res = await this.spotifyWebApi.search(
+  async searchInSpotify(
+    queryString: string,
+    page: number = 0,
+  ): Promise<SearchResult> {
+    const res = (
+      await this.spotifyWebApi.search(
         queryString,
         ['track', 'album', 'artist'],
         { market: 'VN', limit: 15, offset: page * 15 },
-      );
+      )
+    ).body;
 
-      let albumRes = await this.spotifyWebApi.getAlbums(
-        res.body.albums.items.map((e) => e.id),
-      );
-      let albums = albumRes.body.albums.map((e) => {
+    let albumWithoutPopularity = (
+      await this.spotifyWebApi.getAlbums(res.albums.items.map(({ id }) => id))
+    ).body;
+
+    let albums: SimplifiedAlbumWithPopularity[] =
+      albumWithoutPopularity.albums.map((e) => {
         return {
-          type: 'album',
+          id: e.id,
+          type: EntityType.album,
           popularity: e.popularity,
           name: e.name,
-          id: e.id,
           artists: e.artists.map((e) => {
             return { name: e.name, id: e.id };
           }),
@@ -58,57 +70,51 @@ export class SpotifyApiService {
         };
       });
 
-      let tracks = res.body.tracks.items.map((e) => {
-        return {
-          type: 'track',
-          popularity: e.popularity,
-          name: e.name,
-          id: e.id,
-          artists: e.artists.map((e) => {
-            return { name: e.name, id: e.id };
-          }),
-          images: e.album.images,
-        };
-      });
-
-      let artists = res.body.artists.items.map((e) => {
-        return {
-          type: 'artist',
-          popularity: e.popularity,
-          images: e.images,
-          name: e.name,
-          id: e.id,
-        };
-      });
-
-      artists = artists.filter((e) => e.images.length != 0);
-      artists = artists.filter((e) => e.popularity != 0);
-      let mostRelevantResults: SearchItem[] = [
-        ...tracks,
-        ...artists,
-        ...albums,
-      ];
-
-      const calculatedScoreArray = this.calculateScore(
-        mostRelevantResults,
-        queryString,
-      );
-
+    let tracks: SimplifedTrackWithPopularity[] = res.tracks.items.map((e) => {
       return {
-        calculatedScoreArray,
-        albums,
-        tracks,
-        artists,
+        id: e.id,
+        type: EntityType.track,
+        name: e.name,
+        images: e.album.images,
+        artists: e.artists.map((e) => {
+          return { name: e.name, id: e.id };
+        }),
+        popularity: e.popularity,
       };
-    } catch (error) {
-      console.log(error);
-    }
+    });
+
+    let artists: SimplifiedArtistWithPopulary[] = res.artists.items.map((e) => {
+      return {
+        id: e.id,
+        type: EntityType.artist,
+        name: e.name,
+        images: e.images,
+        popularity: e.popularity,
+      };
+    });
+
+    artists = artists.filter((e) => e.images.length != 0);
+    artists = artists.filter((e) => e.popularity != 0);
+    let mostRelevantResults: SimplifiedEntity[] = [
+      ...tracks,
+      ...artists,
+      ...albums,
+    ];
+
+    const mostRelevant = this.calculateScore(mostRelevantResults, queryString);
+
+    return {
+      mostRelevant,
+      albums,
+      tracks,
+      artists,
+    };
   }
 
   private calculateScore(
-    mostRelevantResults: SearchItem[],
+    mostRelevantResults: SimplifiedEntity[],
     searchString: string,
-  ): SearchItem[] {
+  ): SimplifiedEntity[] {
     const fuse = new Fuse(mostRelevantResults, {
       keys: ['name'],
       includeScore: true,
@@ -123,7 +129,6 @@ export class SpotifyApiService {
     const originArray = result.map((e) => {
       return e.item;
     });
-    console.log(originArray);
     return originArray;
   }
 
@@ -131,42 +136,22 @@ export class SpotifyApiService {
     return (await this.spotifyWebApi.getTrack(id)).body;
   }
 
-  async findOneTrackWithFormat(id: string): Promise<{
-    id: string;
-    name: string;
-    type: string;
-    duration_ms: number;
-    images: SpotifyApi.ImageObject[];
-    artists: { id: string; name: string }[];
-  }> {
-    const trackMetaInfo = (await this.spotifyWebApi.getTrack(id)).body;
-    return {
-      id: trackMetaInfo.id,
-      name: trackMetaInfo.name,
-      type: 'track',
-      duration_ms: trackMetaInfo.duration_ms,
-      images: trackMetaInfo.album.images,
-      artists: trackMetaInfo.artists.map((e) => {
-        return { id: e.id, name: e.name };
-      }),
-    };
-  }
-
-  async getLyric(spotifyId: string) {
+  async getLyric(spotifyId: string): Promise<Lyrics[]> {
     const res = await this.httpService.axiosRef.get(
       'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
     );
-    return res.data.lines.map((e) => {
-      return { startTimeMs: e.startTimeMs, words: e.words };
+    return res.data.lines.map((e: { startTimeMs: string; words: string }) => {
+      return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
     });
   }
 
-  async getTop50TracksVietnam(id: string) {
+  async getTop50TracksVietnam(id: string): Promise<Track[]> {
     return (await this.spotifyWebApi.getPlaylistTracks(id)).body.items.map(
       (e) => {
         return {
           id: e.track.id,
           name: e.track.name,
+          type: EntityType.track,
           images: e.track.album.images,
           duration_ms: e.track.duration_ms,
           artists: e.track.artists.map((e) => {
@@ -177,7 +162,21 @@ export class SpotifyApiService {
     );
   }
 
-  async findArtistWithFormat(id: string) {
+  async findOneTrackWithFormat(id: string): Promise<Track> {
+    const track = (await this.spotifyWebApi.getTrack(id)).body;
+    return {
+      id: track.id,
+      name: track.name,
+      type: EntityType.track,
+      duration_ms: track.duration_ms,
+      images: track.album.images,
+      artists: track.artists.map((e) => {
+        return { id: e.id, name: e.name };
+      }),
+    };
+  }
+
+  async findArtistWithFormat(id: string): Promise<Artist> {
     let res;
     await Promise.all([
       this.spotifyWebApi.getArtistAlbums(id),
@@ -202,7 +201,9 @@ export class SpotifyApiService {
       });
       res = {
         id: value[1].body.id,
+        type: EntityType.artist,
         name: value[1].body.name,
+        images: value[1].body.images,
         topTracks,
         albums: value[0].body.items.map((e) => {
           return {
@@ -223,6 +224,35 @@ export class SpotifyApiService {
     return res;
   }
 
+  async findOneAlbumWithFormat(id: string): Promise<Album> {
+    const album = (await this.spotifyWebApi.getAlbum(id)).body;
+    return {
+      id: album.id,
+      type: EntityType.album,
+      album_type: AlbumType[album.album_type.toString()],
+      name: album.name,
+      images: album.images,
+      artists: album.artists.map(({ id, name }) => {
+        return { id, name };
+      }),
+      total_duration: album.tracks.items.reduce((accumulate, current) => {
+        return accumulate + current.duration_ms;
+      }, 0),
+      track: album.tracks.items.map(({ id, name, duration_ms, artists }) => {
+        return {
+          id,
+          name,
+          type: EntityType.track,
+          duration_ms,
+          artists: artists.map(({ id, name }) => {
+            return { id, name };
+          }),
+          images: album.images,
+        };
+      }),
+    };
+  }
+
   async getAlbumArtists(id: string) {
     const tracks = (
       await this.spotifyWebApi.getPlaylistTracks(id, { limit: 20 })
@@ -234,30 +264,5 @@ export class SpotifyApiService {
     });
     let artists = await this.spotifyWebApi.getArtists(Array.from(artistIds));
     return artists.body.artists;
-  }
-
-  async getOneAlbumWithFormat(id: string) {
-    const album = (await this.spotifyWebApi.getAlbum(id)).body;
-    return {
-      id: album.id,
-      type: 'album',
-      album_type: album.album_type,
-      name: album.name,
-      images: album.images,
-      artists: album.artists.map((e) => {
-        return { id: e.id, name: e.name };
-      }),
-      total_duration: album.tracks.items.reduce((accumulate, current) => {
-        return accumulate + current.duration_ms;
-      }, 0),
-      track: album.tracks.items.map((e) => {
-        return {
-          name: e.name,
-          artists: e.artists.map((e) => {
-            return { id: e.id, name: e.name };
-          }),
-        };
-      }),
-    };
   }
 }

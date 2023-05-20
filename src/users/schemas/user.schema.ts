@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectId, Types } from 'mongoose';
+import { EntityType } from 'src/albums/entities/album.entity';
 
+export class recentlySearchItem {
+  id: string;
+  type: EntityType;
+}
 @Schema({ versionKey: false, timestamps: true })
 export class User {
   @Prop({ unique: true, sparse: true })
@@ -16,16 +20,24 @@ export class User {
   password: string;
 
   @Prop()
-  recentlyPlayed: ObjectId[];
+  recentlyPlayed: string[];
+
+  @Prop({
+    type: [
+      {
+        _id: false,
+        id: String,
+        type: { type: String, enum: EntityType },
+      },
+    ],
+  })
+  recentlySearch: recentlySearchItem[];
 
   @Prop()
-  recentlySearch: ObjectId[];
+  followingArtists: string[];
 
   @Prop()
-  followingArtists: ObjectId[];
-
-  @Prop()
-  favourites: ObjectId[];
+  favourites: string[];
 }
 
 const UserSchema = SchemaFactory.createForClass(User);

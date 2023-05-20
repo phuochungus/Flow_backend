@@ -1,10 +1,23 @@
 import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { CurrentUser } from 'src/decorators/current-user.decorator';
-import IdDTO from './dto/id.dto';
-import { MeService } from './me.service';
+import { MeService, SimplifiedItem } from './me.service';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiResponse,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import { PushHistoryDTO } from './dto/PushHistory.dto';
+import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
+import { SimplifiedAlbum } from 'src/albums/entities/album-simplofy.entity';
+import { SimplifiedTrack } from 'src/tracks/entities/simplified-track.dto';
 
 @Controller('me')
+@ApiBearerAuth()
 @UseGuards(JWTAuthGuard)
 export class MeController {
   constructor(private readonly meService: MeService) {}
@@ -15,56 +28,122 @@ export class MeController {
   }
 
   @Get('/search_history')
-  async getFullInfoSearchHistory(@CurrentUser() user: any) {
+  @ApiTags('search history')
+  @ApiExtraModels(SimplifiedTrack, SimplifiedArtistWithImages, SimplifiedAlbum)
+  @ApiResponse({
+    status: 200,
+    schema: {
+      type: 'array',
+      items: {
+        anyOf: [
+          { $ref: getSchemaPath(SimplifiedTrack) },
+          { $ref: getSchemaPath(SimplifiedArtistWithImages) },
+          { $ref: getSchemaPath(SimplifiedAlbum) },
+        ],
+      },
+    },
+  })
+  async displaySearchHistory(
+    @CurrentUser() user: any,
+  ): Promise<SimplifiedItem[]> {
     return await this.meService.displaySearchHistory(user);
   }
 
   @Post('/search_history')
-  async addToSearchHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    await this.meService.addToSearchHistory(user, idDto.id);
+  @ApiTags('search history')
+  addToSearchHistory(
+    @CurrentUser() user: any,
+    @Body() pushHistoryDto: PushHistoryDTO,
+  ) {
+    this.meService.addToSearchHistory(user, pushHistoryDto);
   }
 
   @Delete('/search_history')
-  async removeFromSearchHistory(
-    @CurrentUser() user: any,
-    @Body() idDto: IdDTO,
-  ) {
-    await this.meService.removeFromSearchHistory(user, idDto.id);
+  @ApiTags('search history')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  removeFromSearchHistory(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.removeFromSearchHistory(user, id);
   }
 
   @Get('/play_history')
-  async getFullInfoPlayHistory(@CurrentUser() user: any) {
+  @ApiTags('play history')
+  async displayPlayHistory(@CurrentUser() user: any) {
     return await this.meService.displayPlayHistory(user);
   }
 
+  @ApiTags('play history')
   @Post('/play_history')
-  async addToPlayHistory(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    await this.meService.addToPlayHistory(user, idDto.id);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  addToPlayHistory(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.addToPlayHistory(user, id);
   }
-
+  @ApiTags('artist favourite')
   @Post('/follow_artist')
-  async addToFollowingArtists(@CurrentUser() user: any, @Body() idDto: IdDTO) {
-    await this.meService.followArtist(user, idDto.id);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  addToFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.followArtist(user, id);
   }
 
+  @ApiTags('artist favourite')
   @Delete('/unfollow_artist')
-  async removeFromFollowingArtists(
-    @CurrentUser() user: any,
-    @Body() idDto: IdDTO,
-  ) {
-    await this.meService.unfollowArtist(user, idDto.id);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  removeFromFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.unfollowArtist(user, id);
   }
 
+  @ApiTags('albums favourite')
   @Post('/favourite_albums')
-  async addToFavouriteAlbums(@CurrentUser() user: any, @Body() IdDTO: IdDTO) {
-    await this.meService.addToFavourite(user, IdDTO.id);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  addToFavouriteAlbums(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.addToFavourite(user, id);
   }
 
+  @ApiTags('albums favourite')
   @Delete('/favourite_albums')
-  async removeFromFavouriteAlbums(
-    @CurrentUser() user: any,
-    @Body() IdDTO: IdDTO,
-  ) {
-    await this.meService.removeFromFavourite(user, IdDTO.id);
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+      },
+    },
+  })
+  removeFromFavouriteAlbums(@CurrentUser() user: any, @Body('id') id: string) {
+    this.meService.removeFromFavourite(user, id);
   }
 }
