@@ -49,11 +49,9 @@ export class UsersService {
     let account: (User & { _id: Types.ObjectId }) | null;
 
     if (isEmail(usernameOrEmail)) {
-      account = await this.userModel.findOne({ email: usernameOrEmail }).lean();
+      account = await this.userModel.findOne({ email: usernameOrEmail });
     } else {
-      account = await this.userModel
-        .findOne({ username: usernameOrEmail })
-        .lean();
+      account = await this.userModel.findOne({ username: usernameOrEmail });
     }
     console.log(account);
     if (account && compareSync(password, account.password)) return account;
