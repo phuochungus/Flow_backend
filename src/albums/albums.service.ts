@@ -5,6 +5,6 @@ import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 export class AlbumsService {
   constructor(private readonly spotifyApiService: SpotifyApiService) {}
   async findOne(id: string) {
-    return await this.spotifyApiService.getOneAlbumWithFormat(id);
+    return await this.spotifyApiService.findOneAlbumWithFormat(id);
   }
 }

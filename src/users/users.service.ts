@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
@@ -20,8 +24,14 @@ export class UsersService {
         process.env.SALT || 12,
       );
 
-    const createdUser = new this.userModel(createUserDto);
-    return await createdUser.save();
+    try {
+      const createdUser = new this.userModel(createUserDto);
+      return await createdUser.save();
+    } catch (error) {
+      if (error.code == 11000)
+        throw new ConflictException('email or username already taken!');
+      throw error;
+    }
   }
 
   async findOneByUsername(username: string) {

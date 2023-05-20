@@ -9,6 +9,7 @@ import { createReadStream } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
+import { Track } from './entities/track.entity';
 
 @Injectable()
 export class TracksService {
@@ -33,12 +34,11 @@ export class TracksService {
       response.setHeader('Content-Type', 'audio/ogg');
       file.pipe(response);
     } catch (error) {
-      console.log(error);
       throw new BadGatewayException();
     }
   }
 
-  async getInfo(id: string) {
+  async getInfo(id: string): Promise<Track> {
     try {
       return await this.spotifyApiService.findOneTrackWithFormat(id);
     } catch (error) {
@@ -47,7 +47,7 @@ export class TracksService {
     }
   }
 
-  async getTop50TracksVietnam() {
+  async getTop50TracksVietnam(): Promise<Track[]> {
     const TOP50_PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
     return await this.spotifyApiService.getTop50TracksVietnam(
       TOP50_PLAYLIST_ID,
