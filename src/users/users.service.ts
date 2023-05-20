@@ -55,6 +55,7 @@ export class UsersService {
         .findOne({ username: usernameOrEmail })
         .lean();
     }
+    console.log(account);
     if (account && compareSync(password, account.password)) return account;
     throw new UnauthorizedException();
   }
