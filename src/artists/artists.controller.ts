@@ -14,7 +14,6 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Artist } from './entities/artist.entity';
 import { ArtistWithIsFavourite } from './entities/artist-with-isFavourite.entity';
 
 @ApiTags('artists')
