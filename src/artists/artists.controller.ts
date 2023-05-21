@@ -25,9 +25,9 @@ export class ArtistsController {
   @Get('/artist/:id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ArtistWithIsFavourite })
+  @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFollowingArtists)
-  @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
   async getArtistInfo(@Param('id') artistId: string) {
     return await this.artistsService.getArtistInfo(artistId);
   }
