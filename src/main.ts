@@ -18,7 +18,23 @@ async function bootstrap() {
     .setDescription('The Flow API description')
     .setVersion('1.0')
     .addBearerAuth()
-    .addOAuth2()
+    .addOAuth2(
+      {
+        type: 'oauth2',
+        flows: {
+          authorizationCode: {
+            authorizationUrl:
+              (process.env.HEROKU_APP_URL || 'http://localhost:3000') +
+              '/auth/google',
+            scopes: {
+              email: 'read your mail',
+              profile: 'read your profile',
+            },
+          },
+        },
+      },
+      'google',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
