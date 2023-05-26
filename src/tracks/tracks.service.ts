@@ -32,6 +32,7 @@ export class TracksService {
 
       const file = createReadStream(join(process.cwd(), 'audio', 'audio.opus'));
       response.setHeader('Content-Type', 'audio/ogg');
+      response.setHeader('Transfer-Encoding', 'chunked');
       file.pipe(response);
     } catch (error) {
       throw new BadGatewayException();
