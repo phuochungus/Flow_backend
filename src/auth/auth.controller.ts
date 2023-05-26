@@ -37,7 +37,7 @@ export class AuthController {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
     res.send(accessToken);
     //res.send(accessToken);
-    res.status(302).redirect('https://redirect?token=' + accessToken);
+    res.status(302).redirect('flow://callback?token=' + accessToken);
   }
 
   @Get('/redirect')
