@@ -1,4 +1,12 @@
-import { Controller, Get, UseGuards, Request, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Request,
+  Post,
+  Res,
+  Query,
+} from '@nestjs/common';
 import { FacebookAuthGuard } from './guards/facebook-oauth2.guard';
 import { GoogleAuthGuard } from './guards/google-oauth2.guard';
 import { AuthService } from './auth.service';
@@ -25,8 +33,18 @@ export class AuthController {
   @Get('/google-redirect')
   @ApiOAuth2(['email', 'profile'], 'google')
   @UseGuards(GoogleAuthGuard)
-  async redirect(@Request() req: any): Promise<any> {
-    return await this.authService.findOneOrCreate(req.user);
+  async redirect(@Request() req: any, @Res() res) {
+    const { accessToken } = await this.authService.findOneOrCreate(req.user);
+    res
+      .status(302)
+      .redirect(
+        'https://flow-backend.herokuapp.com/auth/redirect?token=' + accessToken,
+      );
+  }
+
+  @Get('/redirect')
+  getAccessToken(@Query('token') token: string) {
+    return token;
   }
 
   @Get('/facebook')
@@ -36,8 +54,13 @@ export class AuthController {
 
   @Get('/facebook-redirect')
   @UseGuards(FacebookAuthGuard)
-  async redirectFacebook(@Request() req: any): Promise<any> {
-    return await this.authService.findOneOrCreate(req.user);
+  async redirectFacebook(@Request() req: any, @Res() res) {
+    const { accessToken } = await this.authService.findOneOrCreate(req.user);
+    res
+      .status(302)
+      .redirect(
+        'https://flow-backend.herokuapp.com/redirect?token=' + accessToken,
+      );
   }
 
   @Post('/local')
