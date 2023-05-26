@@ -35,13 +35,15 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async redirect(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
-    res.status(302).redirect(`myapp://callback?token=${accessToken}`);
+    res.send(accessToken);
+    //res.send(accessToken);
+    res.status(302).redirect('https://redirect?token=' + accessToken);
   }
 
-  // @Get('/redirect')
-  // getAccessToken(@Query('token') token: string) {
-  //   return token;
-  // }
+  @Get('/redirect')
+  getAccessToken(@Query('token') token: string) {
+    return token;
+  }
 
   @Get('/facebook')
   @ApiTags('auth')
