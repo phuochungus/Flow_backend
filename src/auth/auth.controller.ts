@@ -35,7 +35,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async redirect(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
-    res.send(accessToken);
+    // res.send(accessToken);
     //res.send(accessToken);
     res.status(302).redirect('flow://callback?token=' + accessToken);
   }
