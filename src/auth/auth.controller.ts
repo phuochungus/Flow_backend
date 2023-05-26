@@ -35,17 +35,13 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async redirect(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
-    res
-      .status(302)
-      .redirect(
-        'https://flow-backend.herokuapp.com/auth/redirect?token=' + accessToken,
-      );
+    res.status(302).redirect(`myapp://callback?token=${accessToken}`);
   }
 
-  @Get('/redirect')
-  getAccessToken(@Query('token') token: string) {
-    return token;
-  }
+  // @Get('/redirect')
+  // getAccessToken(@Query('token') token: string) {
+  //   return token;
+  // }
 
   @Get('/facebook')
   @ApiTags('auth')
@@ -56,11 +52,7 @@ export class AuthController {
   @UseGuards(FacebookAuthGuard)
   async redirectFacebook(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
-    res
-      .status(302)
-      .redirect(
-        'https://flow-backend.herokuapp.com/redirect?token=' + accessToken,
-      );
+    res.status(302).redirect(`myapp://callback?token=${accessToken}`);
   }
 
   @Post('/local')
