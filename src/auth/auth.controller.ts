@@ -35,6 +35,7 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async redirect(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
+
     res.status(302).redirect('flow://callback?token=' + accessToken);
   }
 
@@ -60,7 +61,9 @@ export class AuthController {
   @ApiTags('auth')
   @ApiBody({ type: LocalLoginDTO })
   @ApiCreatedResponse({ type: AccessTokenDTO })
-  login(@Request() req: any): string {
-    return this.authService.generateAccessToken(req.user._id);
+  login(@Request() req: any) {
+    return {
+      accessToken: this.authService.generateAccessToken(req.user._id),
+    };
   }
 }
