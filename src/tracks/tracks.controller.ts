@@ -18,9 +18,7 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiParam,
-  ApiProduces,
   ApiOperation,
-  getSchemaPath,
 } from '@nestjs/swagger';
 import { Track, TrackWithIsFavourite } from './entities/track.entity';
 import { Lyrics, responseLyricArray } from './entities/lyrics.entity';
