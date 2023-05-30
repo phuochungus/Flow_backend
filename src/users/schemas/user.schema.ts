@@ -10,7 +10,7 @@ export class User {
   @Prop({ unique: true, sparse: true })
   email: string;
 
-  @Prop({ unique: true, sparse: true })
+  @Prop()
   username: string;
 
   @Prop()
