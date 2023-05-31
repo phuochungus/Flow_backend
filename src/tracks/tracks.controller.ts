@@ -1,11 +1,11 @@
 import {
-  Body,
   Controller,
   Get,
   Param,
   Res,
   UseGuards,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { Response } from 'express';
@@ -90,11 +90,12 @@ export class TracksController {
   @Get('/explore')
   @ApiOkResponse({
     type: [Track],
-    description: 'not implemented, waiting for list of genre',
   })
-  async getTrackByGenre(@Body() explorePlaylistTrack: ExplorePlaylistTrackDTO) {
-    return await this.tracksService.playPlaylist(
-      explorePlaylistTrack.genreName,
+  async getTrackByGenre(
+    @Query() explorePlaylistTrack: ExplorePlaylistTrackDTO,
+  ) {
+    return await this.tracksService.getExploreTrack(
+      explorePlaylistTrack.playlistName,
     );
   }
 }

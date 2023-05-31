@@ -4,5 +4,5 @@ import { IsString } from 'class-validator';
 export default class ExplorePlaylistTrackDTO {
   @ApiProperty({ example: 'Pop' })
   @IsString()
-  genreName: string;
+  playlistName: string;
 }
