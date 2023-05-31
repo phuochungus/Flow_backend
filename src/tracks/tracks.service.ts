@@ -50,13 +50,55 @@ export class TracksService {
 
   async getTop50TracksVietnam(): Promise<Track[]> {
     const TOP50_PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
-    return await this.spotifyApiService.getTop50TracksVietnam(
-      TOP50_PLAYLIST_ID,
-    );
+    return await this.spotifyApiService.getPlaylistTracks(TOP50_PLAYLIST_ID);
   }
 
-  // TODO: implement mapping from flow explore playlist to spotify playlist
-  async playPlaylist(genreName: string) {
-    throw new Error('Method not implemented.');
+  async getExploreTrack(genreName: string) {
+    let playlistId: string;
+    switch (genreName) {
+      case 'NhacViet':
+        playlistId = '37i9dQZF1DX4g8Gs5nUhpp';
+        break;
+
+      case 'Pop':
+        playlistId = '37i9dQZF1EQncLwOalG3K7';
+        break;
+
+      case 'KPop':
+        playlistId = '37i9dQZF1DX9tPFwDMOaN1';
+        break;
+      case 'HipHop':
+        playlistId = '37i9dQZF1EQnqst5TRi17F';
+        break;
+
+      case 'NewMusic':
+        playlistId = '37i9dQZF1DXbpmT3HUTsZm';
+        break;
+
+      case 'Top':
+        playlistId = '37i9dQZEVXbLdGSmz6xilI';
+        break;
+
+      case 'Classic':
+        playlistId = '37i9dQZF1EQn1VBR3CMMWb';
+        break;
+
+      case 'Blues':
+        playlistId = '37i9dQZF1EQpz3DZCEoX3g';
+        break;
+
+      case 'InstrumentalMusic':
+        playlistId = '37i9dQZF1EIeGNeZ9SQQlJ';
+        break;
+
+      case 'Anime':
+        playlistId = '37i9dQZF1DX6XceWZP1znY';
+        break;
+
+      default:
+        return;
+    }
+
+    return await this.spotifyApiService.getPlaylistTracks(playlistId);
   }
 }
