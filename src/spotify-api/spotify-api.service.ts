@@ -36,6 +36,7 @@ export class SpotifyApiService {
 
   async requestAccessToken() {
     this.spotifyWebApi.clientCredentialsGrant().then((data: any) => {
+      console.log(data.body.access_token);
       this.spotifyWebApi.setAccessToken(data.body.access_token);
     });
   }
@@ -145,7 +146,7 @@ export class SpotifyApiService {
     });
   }
 
-  async getTop50TracksVietnam(id: string): Promise<Track[]> {
+  async getPlaylistTracks(id: string): Promise<Track[]> {
     return (await this.spotifyWebApi.getPlaylistTracks(id)).body.items.map(
       (e) => {
         return {
