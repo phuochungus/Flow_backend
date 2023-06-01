@@ -18,7 +18,7 @@ export class AuthService {
   async findOneOrCreate(userDto: {
     name: string;
     email: string;
-    birthday: string | undefined;
+    birthday?: string;
   }) {
     const user = await this.userService.findOneByEmail(userDto.email);
     if (user) {
@@ -26,13 +26,12 @@ export class AuthService {
         accessToken: this.generateAccessToken(user._id.toString()),
       };
     } else {
-      const createdUser = await this.userService.create(
-        new CreateUserDto({
-          username: userDto.name,
-          email: userDto.email,
-          birth: userDto.birthday ? new Date(userDto.birthday) : undefined,
-        }),
-      );
+      const createdUser = await this.userService.create({
+        username: userDto.name,
+        email: userDto.email,
+        birth: userDto.birthday,
+      });
+
       return {
         accessToken: this.generateAccessToken(createdUser._id.toString()),
       };
