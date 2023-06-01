@@ -36,7 +36,6 @@ export class SpotifyApiService {
 
   async requestAccessToken() {
     this.spotifyWebApi.clientCredentialsGrant().then((data: any) => {
-      console.log(data.body.access_token);
       this.spotifyWebApi.setAccessToken(data.body.access_token);
     });
   }
