@@ -5,9 +5,9 @@ export class recentlySearchItem {
   id: string;
   type: EntityType;
 }
-@Schema({ versionKey: false, timestamps: true })
+@Schema({ versionKey: false, timestamps: true, autoIndex: true })
 export class User {
-  @Prop({ unique: true, sparse: true })
+  @Prop({ unique: true })
   email: string;
 
   @Prop()
