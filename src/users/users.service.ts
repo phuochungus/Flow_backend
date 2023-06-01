@@ -53,7 +53,6 @@ export class UsersService {
     } else {
       account = await this.userModel.findOne({ username: usernameOrEmail });
     }
-    console.log(account);
     if (account && compareSync(password, account.password)) return account;
     throw new UnauthorizedException();
   }

@@ -11,7 +11,6 @@ export default class LocalStrategy extends PassportStrategy(Strategy, 'local') {
   }
 
   async validate(usernameOrEmail: string, password: string) {
-    console.log(usernameOrEmail);
     const payload = await this.usersService.findAccountMatchUsernameOrEmail(
       usernameOrEmail,
       password,
