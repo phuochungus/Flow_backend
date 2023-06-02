@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
-import QueryTrackDTO from './dto/query-track.dto';
+import {QueryTrackDTO} from './dto/query-track.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('search')
