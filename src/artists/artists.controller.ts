@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { ArtistsService } from './artists.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
-import { MarkUserFollowingArtists } from 'src/interceptors/mark-user-following-artists.interceptor';
 import {
   ApiBearerAuth,
   ApiOkResponse,

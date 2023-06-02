@@ -34,9 +34,6 @@ export class User {
   recentlySearch: recentlySearchItem[];
 
   @Prop()
-  followingArtists: string[];
-
-  @Prop()
   favourites: string[];
 }
 
