@@ -3,6 +3,16 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { SeminarModule } from './seminar/seminar.module';
+import { AlbumsModule } from './albums/albums.module';
+import { ArtistsModule } from './artists/artists.module';
+import { AuthModule } from './auth/auth.module';
+import { MeModule } from './me/me.module';
+import { SearchModule } from './search/search.module';
+import { SpotifyApiModule } from './spotify-api/spotify-api.module';
+import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.module';
+import { TracksModule } from './tracks/tracks.module';
+import { UsersModule } from './users/users.module';
+import { YoutubeApiModule } from './youtube-api/youtube-api.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,7 +47,20 @@ async function bootstrap() {
       'google',
     )
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    include: [
+      AuthModule,
+      UsersModule,
+      MeModule,
+      SpotifyApiModule,
+      TracksModule,
+      AlbumsModule,
+      ArtistsModule,
+      SearchModule,
+      YoutubeApiModule,
+      SpotifyToYoutubeModule,
+    ],
+  });
   SwaggerModule.setup('api', app, document);
 
   const config2 = new DocumentBuilder()

@@ -22,6 +22,7 @@ export class MeController {
   constructor(private readonly meService: MeService) {}
 
   @Get('/profile')
+  @ApiTags('profile')
   getProfile(@CurrentUser() user: any) {
     return user;
   }
@@ -90,33 +91,6 @@ export class MeController {
   addToPlayHistory(@CurrentUser() user: any, @Body('id') id: string) {
     this.meService.addToPlayHistory(user, id);
   }
-  @ApiTags('artist favourite')
-  @Post('/follow_artist')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-      },
-    },
-  })
-  addToFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
-    this.meService.addToFavourite(user, id);
-  }
-
-  @ApiTags('artist favourite')
-  @Delete('/unfollow_artist')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-      },
-    },
-  })
-  removeFromFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
-    this.meService.removeFromFavourite(user, id);
-  }
 
   @ApiTags('favourite (album, track and artist)')
   @Post('/favourites')
@@ -127,7 +101,7 @@ export class MeController {
         id: { type: 'string' },
       },
       example: {
-        id: '3zhbXKFjUDw40pTYyCgt1Y',
+        id: '0B1ZnYwYefkNhZeE8ZQpv5',
       },
     },
   })
@@ -144,7 +118,7 @@ export class MeController {
         id: { type: 'string' },
       },
       example: {
-        id: '3zhbXKFjUDw40pTYyCgt1Y',
+        id: '0B1ZnYwYefkNhZeE8ZQpv5',
       },
     },
   })
@@ -152,7 +126,7 @@ export class MeController {
     this.meService.removeFromFavourite(user, id);
   }
 
-  @ApiTags('favourite (album and track)')
+  @ApiTags('favourite (album, track and artist)')
   @Get('/favourites')
   getFavourites(@CurrentUser() user: any): string[] {
     return user.favourites;

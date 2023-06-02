@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 export class LocalLoginDTO {
-  @ApiProperty({ example: 'phuochungus@gmail.com' })
+  @ApiProperty({ example: 'user@gmail.com' })
   username: string;
 
-  @ApiProperty({ example: '123123123' })
+  @ApiProperty({ example: '123' })
   password: string;
 }
