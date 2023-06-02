@@ -5,5 +5,6 @@ import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
 @Module({
   imports: [SpotifyApiModule],
   controllers: [SearchController],
+  exports: [SpotifyApiModule],
 })
 export class SearchModule {}

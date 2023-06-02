@@ -1,5 +1,4 @@
 import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
-import { User } from '../schemas/user.schema';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -9,20 +8,16 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({ required: false, example: 'phuochungus' })
-  @IsOptional()
   @IsString()
   username: string;
 
   @ApiProperty({ required: false, example: '2003-08-19' })
   @IsOptional()
   @IsDateString()
-  birth: Date | undefined;
+  birth?: string;
 
   @ApiProperty({ example: '123123123' })
+  @IsOptional()
   @IsString()
-  password: string;
-
-  constructor(params: Partial<User>) {
-    Object.assign(this, params);
-  }
+  password?: string;
 }

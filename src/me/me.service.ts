@@ -153,20 +153,6 @@ export class MeService {
     return result;
   }
 
-  async followArtist(user: any, id: string) {
-    const array: string[] = user.followingArtists;
-    if (array.includes(id)) return;
-    user.followingArtists.push(id);
-    await user.save();
-    return;
-  }
-
-  async unfollowArtist(user: any, id: string) {
-    const index = user.followingArtists.indexOf(id);
-    if (index > -1) user.followingArtists.splice(id, 1);
-    await user.save();
-  }
-
   async addToFavourite(user: any, id: string) {
     if (user.favourites.includes(id)) return;
     user.favourites.push(id);

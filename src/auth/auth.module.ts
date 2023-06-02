@@ -30,6 +30,6 @@ import LocalStrategy from './strategies/local.strategy';
     LocalStrategy,
   ],
   controllers: [AuthController],
-  exports: [],
+  exports: [AuthService],
 })
 export class AuthModule {}

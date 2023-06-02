@@ -15,6 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ArtistWithIsFavourite } from './entities/artist-with-isFavourite.entity';
+import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
 
 @ApiTags('artists')
 @Controller('artists')
@@ -26,7 +27,7 @@ export class ArtistsController {
   @ApiOkResponse({ type: ArtistWithIsFavourite })
   @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
   @UseGuards(JWTAuthGuard)
-  @UseInterceptors(MarkUserFollowingArtists)
+  @UseInterceptors(MarkUserFavouritesInterceptor)
   async getArtistInfo(@Param('id') artistId: string) {
     return await this.artistsService.getArtistInfo(artistId);
   }
