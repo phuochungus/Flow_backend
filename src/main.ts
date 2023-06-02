@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SeminarModule } from './seminar/seminar.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -38,6 +39,18 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  const config2 = new DocumentBuilder()
+    .setTitle('Seminar APIs')
+    .setDescription('The API to seminar')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document2 = SwaggerModule.createDocument(app, config2, {
+    include: [SeminarModule],
+  });
+  SwaggerModule.setup('api2', app, document2);
 
   await app.listen(process.env.PORT || 3000);
 }

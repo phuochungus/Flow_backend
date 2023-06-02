@@ -6,7 +6,6 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
-  ApiOkResponse,
   ApiResponse,
   ApiTags,
   getSchemaPath,
@@ -102,7 +101,7 @@ export class MeController {
     },
   })
   addToFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
-    this.meService.followArtist(user, id);
+    this.meService.addToFavourite(user, id);
   }
 
   @ApiTags('artist favourite')
@@ -116,34 +115,46 @@ export class MeController {
     },
   })
   removeFromFollowingArtists(@CurrentUser() user: any, @Body('id') id: string) {
-    this.meService.unfollowArtist(user, id);
+    this.meService.removeFromFavourite(user, id);
   }
 
-  @ApiTags('albums favourite')
-  @Post('/favourite_albums')
+  @ApiTags('favourite (album, track and artist)')
+  @Post('/favourites')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         id: { type: 'string' },
       },
+      example: {
+        id: '3zhbXKFjUDw40pTYyCgt1Y',
+      },
     },
   })
-  addToFavouriteAlbums(@CurrentUser() user: any, @Body('id') id: string) {
+  addToFavourites(@CurrentUser() user: any, @Body('id') id: string) {
     this.meService.addToFavourite(user, id);
   }
 
-  @ApiTags('albums favourite')
-  @Delete('/favourite_albums')
+  @ApiTags('favourite (album, track and artist)')
+  @Delete('/favourites')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         id: { type: 'string' },
       },
+      example: {
+        id: '3zhbXKFjUDw40pTYyCgt1Y',
+      },
     },
   })
-  removeFromFavouriteAlbums(@CurrentUser() user: any, @Body('id') id: string) {
+  removeFromFavourites(@CurrentUser() user: any, @Body('id') id: string) {
     this.meService.removeFromFavourite(user, id);
+  }
+
+  @ApiTags('favourite (album and track)')
+  @Get('/favourites')
+  getFavourites(@CurrentUser() user: any): string[] {
+    return user.favourites;
   }
 }

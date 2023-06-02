@@ -7,5 +7,6 @@ import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
   imports: [SpotifyApiModule],
   controllers: [MeController],
   providers: [MeService],
+  exports: [MeService],
 })
 export class MeModule {}

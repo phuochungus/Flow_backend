@@ -13,6 +13,7 @@ import { ArtistsModule } from './artists/artists.module';
 import { SearchModule } from './search/search.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
 import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.module';
+import { SeminarModule } from './seminar/seminar.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.
     SearchModule,
     YoutubeApiModule,
     SpotifyToYoutubeModule,
+    SeminarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
