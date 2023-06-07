@@ -95,6 +95,34 @@ export class TracksService {
         playlistId = '37i9dQZF1DX6XceWZP1znY';
         break;
 
+      case 'JPop':
+        playlistId = '37i9dQZF1DXdbRLJPSmnyq';
+        break;
+
+      case 'Funk':
+        playlistId = '37i9dQZF1EQnJyHBkXpASl';
+        break;
+
+      case 'Gaming':
+        playlistId = '37i9dQZF1DWTyiBJ6yEqeu';
+        break;
+
+      case 'Indie':
+        playlistId = '37i9dQZF1EQqkOPvHGajmW';
+        break;
+
+      case 'R&B':
+        playlistId = '37i9dQZF1EQoqCH7BwIYb7';
+        break;
+
+      case 'Rock':
+        playlistId = '37i9dQZF1EQpj7X7UK8OOF';
+        break;
+
+      case 'Love':
+        playlistId = '37i9dQZF1DWUYe7oajVI3W';
+        break;
+
       default:
         return;
     }
