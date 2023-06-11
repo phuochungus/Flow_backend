@@ -36,7 +36,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     );
     if (searchResults.length == 0) throw new NotFoundException();
     const tmp1 = this.filterResults(searchResults, 'title', spotifyTrack.name);
-    const tmp2 = this.filterResults(tmp1, 'album', spotifyTrack.album.name);
+    const tmp2 = [];
 
     if (tmp2.length != 0) return tmp2[0].youtubeId;
     if (tmp1.length != 0) return tmp1[0].youtubeId;
