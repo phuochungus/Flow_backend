@@ -2,14 +2,17 @@ import {
   Injectable,
   BadGatewayException,
   BadRequestException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
-import { createReadStream } from 'fs';
+import { createReadStream, readFile } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
+import fs from 'fs';
+import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class TracksService {
@@ -17,6 +20,11 @@ export class TracksService {
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
   ) {}
+
+  private supabase = createClient(
+    process.env.SUPABASE_PROJECT_URL,
+    process.env.SUPABASE_API_KEY,
+  );
 
   async play(spotifyId: string, response: Response) {
     const track = await this.spotifyApiService.findOneTrack(spotifyId);
@@ -36,6 +44,50 @@ export class TracksService {
       file.pipe(response);
     } catch (error) {
       throw new BadGatewayException();
+    }
+  }
+
+  private async fileExistInBucket(filename: string): Promise<boolean> {
+    const { data, error } = await this.supabase.storage.from('tracks').list();
+    if (error) return false;
+
+    for (let file of data) {
+      if (file.name == filename) return true;
+    }
+
+    return false;
+  }
+
+  async playExperiment(spotifyId: string, response: Response) {
+    if (await this.fileExistInBucket(spotifyId)) {
+      const { data, error } = await this.supabase.storage
+        .from('tracks')
+        .createSignedUrl(spotifyId, 600);
+      if (error) console.log(error);
+      response.redirect(data.signedUrl);
+    } else {
+      const track = await this.spotifyApiService.findOneTrack(spotifyId);
+      const youtubeURL =
+        await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+      try {
+        await youtubedl(youtubeURL, {
+          noCheckCertificates: true,
+          noMtime: true,
+          extractAudio: true,
+          output: join(process.cwd(), 'audio', 'audio'),
+        });
+
+        fs.readFile(join(process.cwd(), 'audio', 'audio.opus'), (err, data) => {
+          this.supabase.storage
+            .from('tracks')
+            .upload(spotifyId, data, { contentType: 'audio/ogg' });
+
+          response.setHeader('Content-Type', 'audio/ogg');
+          response.send(data);
+        });
+      } catch (error) {
+        throw new BadGatewayException();
+      }
     }
   }
 
