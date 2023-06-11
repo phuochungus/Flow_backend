@@ -62,6 +62,27 @@ export class TracksController {
     return await this.tracksService.play(id, res);
   }
 
+  @Get('v2/play/:id')
+  @ApiParam({ name: 'id', example: '3zhbXKFjUDw40pTYyCgt1Y' })
+  @ApiOperation({ summary: 'an audio streaming API' })
+  @ApiOkResponse({
+    description: 'a audio file',
+    content: {
+      'audio/ogg': {},
+    },
+    headers: {
+      'Transfer-Encoding': {
+        schema: {
+          type: 'string',
+        },
+        description: 'chunked',
+      },
+    },
+  })
+  async playTrackExperiment(@Res() res: Response, @Param('id') id: string) {
+    return await this.tracksService.playExperiment(id, res);
+  }
+
   @Get('lyrics/:id')
   @ApiParam({ name: 'id', example: '3zhbXKFjUDw40pTYyCgt1Y' })
   @ApiOkResponse({
