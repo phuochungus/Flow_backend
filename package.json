@@ -30,6 +30,7 @@
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/swagger": "^6.3.0",
+    "@supabase/supabase-js": "^2.24.0",
     "@types/jaro-winkler": "^0.2.1",
     "@types/lodash": "^4.14.194",
     "@types/spotify-web-api-node": "^5.0.7",
