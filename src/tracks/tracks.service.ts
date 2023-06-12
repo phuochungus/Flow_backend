@@ -79,7 +79,12 @@ export class TracksService {
           filter: 'audioonly',
           quality: 'highestaudio',
         })
-          .on('end', () => {
+          .pipe(
+            createWriteStream(join(process.cwd(), 'audio', 'audio.opus'), {
+              flags: 'w',
+            }),
+          )
+          .on('finish', () => {
             console.log(
               `save to ${join(process.cwd(), 'audio', 'audio.opus')}`,
             );
@@ -94,15 +99,7 @@ export class TracksService {
                 response.send(data);
               },
             );
-          })
-          .on('error', () => {
-            console.log('error');
-          })
-          .pipe(
-            createWriteStream(join(process.cwd(), 'audio', 'audio.opus'), {
-              flags: 'w',
-            }),
-          );
+          });
       } catch (error) {
         throw new BadGatewayException();
       }
