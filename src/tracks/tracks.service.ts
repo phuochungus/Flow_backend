@@ -10,7 +10,6 @@ import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
-import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import ytdl from 'ytdl-core';
 
@@ -79,9 +78,7 @@ export class TracksService {
           filter: 'audioonly',
           quality: 'highestaudio',
         })
-          .pipe(
-            fs.createWriteStream(join(process.cwd(), 'audio', 'audio.opus')),
-          )
+          .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
           .on('finish', () => {
             readFile(
               join(process.cwd(), 'audio', 'audio.opus'),
