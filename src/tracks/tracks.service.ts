@@ -91,6 +91,7 @@ export class TracksService {
                       .from('tracks')
                       .createSignedUrl(spotifyId, 600);
                     if (error) console.log(error);
+                    console.log(data.signedUrl);
                     response.redirect(data.signedUrl);
                   });
               },
