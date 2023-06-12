@@ -85,16 +85,17 @@ export class TracksService {
           quality: 'highestaudio',
         })
           .pipe(
-            createWriteStream(join(process.cwd(), 'audio', 'audio.opus'), {
-              flags: 'w',
-            }),
+            createWriteStream(
+              join(process.cwd(), 'audio', spotifyId + '.opus'),
+              {
+                flags: 'w',
+              },
+            ),
           )
           .on('finish', () => {
-            console.log(
-              `save to ${join(process.cwd(), 'audio', 'audio.opus')}`,
-            );
+            console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
             const file = readFileSync(
-              join(process.cwd(), 'audio', 'audio.opus'),
+              join(process.cwd(), 'audio', spotifyId + '.opus'),
             );
             this.supabase.storage
               .from('tracks')
