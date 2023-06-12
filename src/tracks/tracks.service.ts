@@ -73,8 +73,7 @@ export class TracksService {
       ytdl(youtubeURL, {
         requestOptions: {
           headers: {
-            cookie:
-              'VISITOR_INFO1_LIVE=6zzOTiFYgxY; __Secure-3PAPISID=DdpkvJGLZzmJxpDV/ALFEN8n4m-F3yzRih; __Secure-3PSID=XQjfA8dp_C0yGnimEGJuKNHodQ3vPXcExRkAtbvHO6a48LyC7lW6Df8deFH8i3OaXoxv0Q.; LOGIN_INFO=AFmmF2swRQIgQXWMPqA6z7vGvrTPDp24osIZY5T5JqHZ2T4yySCemekCIQCm3Pj2MIHe-N7Bal2XUMyOAK7QG_QU-MuQb4RP_gEfeQ:QUQ3MjNmd3o0eEd2U05Dbmh3U0dTMExhNXNMSlhBMm1FQkwxNVByYTMtQ2dXbEllVHI0S25sR3diNF90OWh5ckg3Vzk0VlRONmhFYjNWcHV0NlFOakNpMng0SUt5X2Z3bVBXZHJocmc0M3lfVk1SZEVBaEZTbGJHVlJwRVMzTFlGVU13enVHX3FaUElxOHpPSkpXc2dqd19aT1YySm9XUWJn; _gcl_au=1.1.1358410736.1686481284; PREF=tz=Asia.Bangkok&f4=4000000&f6=40000000&f7=100&autoplay=true; YSC=LlL_xTL3FXE; ST-plcuz1=; ST-1kv9oej=; ST-1b=disableCache=true&itct=CBUQsV4iEwjnxuv-2bz_AhV-r1YBHbYBDrQ%3D&csn=MC41MDExMTI0MDgwMjc1ODc1&endpoint=%7B%22clickTrackingParams%22%3A%22CBUQsV4iEwjnxuv-2bz_AhV-r1YBHbYBDrQ%3D%22%2C%22commandMetadata%22%3A%7B%22webCommandMetadata%22%3A%7B%22url%22%3A%22%2F%22%2C%22webPageType%22%3A%22WEB_PAGE_TYPE_BROWSE%22%2C%22rootVe%22%3A3854%2C%22apiUrl%22%3A%22%2Fyoutubei%2Fv1%2Fbrowse%22%7D%7D%2C%22browseEndpoint%22%3A%7B%22browseId%22%3A%22FEwhat_to_watch%22%7D%7D; __Secure-3PSIDCC=AP8dLtwubncXhJFoVyb20NmVMouACMbMwwCwXd8ditbP23k9dHqJtrsECqm0sHl4bVRM8cpyHA',
+            cookie: process.env.YOUTUBE_COOKIES,
           },
         },
         filter: 'audioonly',
