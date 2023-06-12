@@ -85,9 +85,14 @@ export class TracksService {
               (err, data) => {
                 this.supabase.storage
                   .from('tracks')
-                  .upload(spotifyId, data, { contentType: 'audio/ogg' });
-                response.setHeader('Content-Type', 'audio/ogg');
-                response.send(data);
+                  .upload(spotifyId, data, { contentType: 'audio/ogg' })
+                  .then(async () => {
+                    const { data, error } = await this.supabase.storage
+                      .from('tracks')
+                      .createSignedUrl(spotifyId, 600);
+                    if (error) console.log(error);
+                    response.redirect(data.signedUrl);
+                  });
               },
             );
           });
