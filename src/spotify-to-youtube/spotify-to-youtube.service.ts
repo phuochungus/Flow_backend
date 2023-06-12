@@ -19,9 +19,8 @@ export class SpotifyToYoutubeService implements OnModuleInit {
   async getYoutubeURLFromSpotify(
     spotifyTrack: SpotifyApi.SingleTrackResponse,
   ): Promise<string> {
-    return `https://www.youtube.com/watch?v=${await this.getYoutubeIdFromSpotifyTrack(
-      spotifyTrack,
-    )}`;
+    const youtubeId = await this.getYoutubeIdFromSpotifyTrack(spotifyTrack);
+    return `https://www.youtube.com/watch?v=${youtubeId}`;
   }
 
   async getYoutubeIdFromSpotifyTrack(
@@ -36,6 +35,8 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     );
     if (searchResults.length == 0) throw new NotFoundException();
     const tmp1 = this.filterResults(searchResults, 'title', spotifyTrack.name);
+    console.log(`expected title: ${spotifyTrack.name}`);
+    console.log(tmp1);
     const tmp2 = [];
 
     if (tmp2.length != 0) return tmp2[0].youtubeId;
