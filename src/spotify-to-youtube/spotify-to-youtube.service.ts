@@ -40,7 +40,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
       tmp1,
       'album',
       spotifyTrack.album.name,
-      0.2,
+      0.5,
     );
 
     const tmp3 = this.filterResults(
