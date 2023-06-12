@@ -69,7 +69,6 @@ export class TracksService {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
         await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
-      console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {
           requestOptions: {
@@ -80,9 +79,11 @@ export class TracksService {
           filter: 'audioonly',
           quality: 'highestaudio',
         })
-          .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
+          .pipe(
+            fs.createWriteStream(join(process.cwd(), 'audio', 'audio.opus')),
+          )
           .on('finish', () => {
-            fs.readFile(
+            readFile(
               join(process.cwd(), 'audio', 'audio.opus'),
               (err, data) => {
                 this.supabase.storage
