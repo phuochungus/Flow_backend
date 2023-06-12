@@ -69,6 +69,7 @@ export class TracksService {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
         await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+      console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {
           requestOptions: {
