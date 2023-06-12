@@ -59,44 +59,44 @@ export class TracksService {
   }
 
   async playExperiment(spotifyId: string, response: Response) {
-    // if (await this.fileExistInBucket(spotifyId)) {
-    //   const { data, error } = await this.supabase.storage
-    //     .from('tracks')
-    //     .createSignedUrl(spotifyId, 600);
-    //   if (error) console.log(error);
-    //   response.redirect(data.signedUrl);
-    // } else {
-    const track = await this.spotifyApiService.findOneTrack(spotifyId);
-    const youtubeURL =
-      await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
-    try {
-      ytdl(youtubeURL, {
-        requestOptions: {
-          headers: {
-            cookie: process.env.YOUTUBE_COOKIES,
-          },
-        },
-        filter: 'audioonly',
-        quality: 'highestaudio',
-      })
-        .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
-        .on('finish', () => {
-          fs.readFile(
-            join(process.cwd(), 'audio', 'audio.opus'),
-            (err, data) => {
-              this.supabase.storage
-                .from('tracks')
-                .upload(spotifyId, data, { contentType: 'audio/ogg' });
-
-              response.setHeader('Content-Type', 'audio/ogg');
-              response.send(data);
+    if (await this.fileExistInBucket(spotifyId)) {
+      const { data, error } = await this.supabase.storage
+        .from('tracks')
+        .createSignedUrl(spotifyId, 600);
+      if (error) console.log(error);
+      response.redirect(data.signedUrl);
+    } else {
+      const track = await this.spotifyApiService.findOneTrack(spotifyId);
+      const youtubeURL =
+        await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+      try {
+        ytdl(youtubeURL, {
+          requestOptions: {
+            headers: {
+              cookie: process.env.YOUTUBE_COOKIES,
             },
-          );
-        });
-    } catch (error) {
-      throw new BadGatewayException();
+          },
+          filter: 'audioonly',
+          quality: 'highestaudio',
+        })
+          .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
+          .on('finish', () => {
+            fs.readFile(
+              join(process.cwd(), 'audio', 'audio.opus'),
+              (err, data) => {
+                this.supabase.storage
+                  .from('tracks')
+                  .upload(spotifyId, data, { contentType: 'audio/ogg' });
+
+                response.setHeader('Content-Type', 'audio/ogg');
+                response.send(data);
+              },
+            );
+          });
+      } catch (error) {
+        throw new BadGatewayException();
+      }
     }
-    // }
   }
 
   async getInfo(id: string): Promise<Track> {
