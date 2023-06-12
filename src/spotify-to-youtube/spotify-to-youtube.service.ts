@@ -26,6 +26,8 @@ export class SpotifyToYoutubeService implements OnModuleInit {
   async getYoutubeIdFromSpotifyTrack(
     spotifyTrack: SpotifyApi.SingleTrackResponse,
   ): Promise<string> {
+    const isDebug = false;
+
     const searchResults: YoutubeVideo[] = await this.searchMusics(
       spotifyTrack.name +
         ' ' +
@@ -62,6 +64,26 @@ export class SpotifyToYoutubeService implements OnModuleInit {
         .toString(),
     );
 
+    const tmp4 = tmp3.sort(
+      (a, b) =>
+        Math.abs(a.duration.totalSeconds - spotifyTrack.duration_ms / 1000) -
+        Math.abs(b.duration.totalSeconds - spotifyTrack.duration_ms / 1000),
+    );
+    
+    if (isDebug) {
+      console.log('expect: ' + spotifyTrack.name);
+      console.log(tmp1);
+      console.log('expect: ' + spotifyTrack.album.name);
+      console.log(tmp2);
+      console.log(
+        'expect: ' + spotifyTrack.artists.map((e) => e.name).toString(),
+      );
+      console.log(tmp3);
+      console.log('expect: ' + spotifyTrack.duration_ms / 1000);
+      console.log(tmp4);
+    }
+
+    if (tmp4.length != 0) return tmp4[0].youtubeId;
     if (tmp3.length != 0) return tmp3[0].youtubeId;
     if (tmp2.length != 0) return tmp2[0].youtubeId;
     if (tmp1.length != 0) return tmp1[0].youtubeId;
