@@ -85,6 +85,9 @@ export class TracksService {
               readFile(
                 join(process.cwd(), 'audio', 'audio.opus'),
                 (err, data) => {
+                  this.supabase.storage
+                    .from('tracks')
+                    .upload(spotifyId, data, { contentType: 'audio/ogg' });
                   if (err) response.sendStatus(500);
                   response.setHeader('Content-Type', 'audio/ogg');
                   response.send(data);
