@@ -86,7 +86,8 @@ export class TracksService {
                 this.supabase.storage
                   .from('tracks')
                   .upload(spotifyId, data, { contentType: 'audio/ogg' });
-
+                  
+                response.setHeader('Content-Type', 'audio/ogg');
                 response.send(data);
                 // .then(async () => {
                 //   const { data, error } = await this.supabase.storage
