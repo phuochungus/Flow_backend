@@ -58,7 +58,7 @@ export class TracksService {
   }
 
   async playExperiment(spotifyId: string, response: Response) {
-    if (await this.fileExistInBucket(spotifyId)) {
+    if ((await this.fileExistInBucket(spotifyId)) && false) {
       const { data, error } = await this.supabase.storage
         .from('tracks')
         .createSignedUrl(spotifyId, 600);
@@ -68,6 +68,7 @@ export class TracksService {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
         await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+      console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {
           requestOptions: {
