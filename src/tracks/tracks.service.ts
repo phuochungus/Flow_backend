@@ -2,17 +2,17 @@ import {
   Injectable,
   BadGatewayException,
   BadRequestException,
-  OnModuleInit,
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
-import { createReadStream, readFile } from 'fs';
+import { createReadStream, createWriteStream, readFile } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
+import ytdl from 'ytdl-core';
 
 @Injectable()
 export class TracksService {
@@ -70,21 +70,29 @@ export class TracksService {
       const youtubeURL =
         await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
       try {
-        await youtubedl(youtubeURL, {
-          noCheckCertificates: true,
-          noMtime: true,
-          extractAudio: true,
-          output: join(process.cwd(), 'audio', 'audio'),
-        });
+        ytdl(youtubeURL, {
+          requestOptions: {
+            headers: {
+              cookie: process.env.YOUTUBE_COOKIES,
+            },
+          },
+          filter: 'audioonly',
+          quality: 'highestaudio',
+        })
+          .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
+          .on('finish', () => {
+            fs.readFile(
+              join(process.cwd(), 'audio', 'audio.opus'),
+              (err, data) => {
+                this.supabase.storage
+                  .from('tracks')
+                  .upload(spotifyId, data, { contentType: 'audio/ogg' });
 
-        fs.readFile(join(process.cwd(), 'audio', 'audio.opus'), (err, data) => {
-          this.supabase.storage
-            .from('tracks')
-            .upload(spotifyId, data, { contentType: 'audio/ogg' });
-
-          response.setHeader('Content-Type', 'audio/ogg');
-          response.send(data);
-        });
+                response.setHeader('Content-Type', 'audio/ogg');
+                response.send(data);
+              },
+            );
+          });
       } catch (error) {
         throw new BadGatewayException();
       }
