@@ -5,7 +5,12 @@ import {
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
-import { createReadStream, createWriteStream, readFile } from 'fs';
+import {
+  createReadStream,
+  createWriteStream,
+  readFile,
+  readFileSync,
+} from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
@@ -88,17 +93,14 @@ export class TracksService {
             console.log(
               `save to ${join(process.cwd(), 'audio', 'audio.opus')}`,
             );
-            readFile(
+            const file = readFileSync(
               join(process.cwd(), 'audio', 'audio.opus'),
-              (err, data) => {
-                this.supabase.storage
-                  .from('tracks')
-                  .upload(spotifyId, data, { contentType: 'audio/ogg' });
-                if (err) response.sendStatus(500);
-                response.setHeader('Content-Type', 'audio/ogg');
-                response.send(data);
-              },
             );
+            this.supabase.storage
+              .from('tracks')
+              .upload(spotifyId, file, { contentType: 'audio/ogg' });
+            response.setHeader('Content-Type', 'audio/ogg');
+            response.send(file);
           });
       } catch (error) {
         throw new BadGatewayException();
