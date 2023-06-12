@@ -35,25 +35,50 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     );
     if (searchResults.length == 0) throw new NotFoundException();
     const tmp1 = this.filterResults(searchResults, 'title', spotifyTrack.name);
-    console.log(`expected title: ${spotifyTrack.name}`);
-    console.log(tmp1);
-    const tmp2 = [];
 
+    const tmp2 = this.filterResults(
+      tmp1,
+      'album',
+      spotifyTrack.album.name,
+      0.2,
+    );
+
+    const tmp3 = this.filterResults(
+      tmp1.map((e) => {
+        return {
+          ...e,
+          artists: e.artists
+            .map((e) => e.name)
+            .sort()
+            .toString(),
+        };
+      }),
+      'artists',
+      spotifyTrack.artists
+        .map((e) => {
+          return e.name + ' ';
+        })
+        .sort()
+        .toString(),
+    );
+
+    if (tmp3.length != 0) return tmp3[0].youtubeId;
     if (tmp2.length != 0) return tmp2[0].youtubeId;
     if (tmp1.length != 0) return tmp1[0].youtubeId;
     return searchResults[0].youtubeId;
   }
 
   private filterResults(
-    originArray: YoutubeVideo[],
+    originArray: any[],
     fieldName: string,
     fieldValue: string,
+    threshold: number = 0.5,
   ): YoutubeVideo[] {
-    const fuse = new Fuse<YoutubeVideo>(originArray, {
+    const fuse = new Fuse(originArray, {
       keys: [fieldName],
       includeScore: true,
       shouldSort: true,
-      threshold: 0.5,
+      threshold,
     });
 
     const filterdArray = fuse.search(fieldValue);
