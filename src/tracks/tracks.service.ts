@@ -77,29 +77,45 @@ export class TracksService {
           },
           filter: 'audioonly',
           quality: 'highestaudio',
-        })
-          .pipe(createWriteStream(join(process.cwd(), 'audio', 'audio.opus')))
-          .on('finish', () => {
-            readFile(
-              join(process.cwd(), 'audio', 'audio.opus'),
-              (err, data) => {
-                this.supabase.storage
-                  .from('tracks')
-                  .upload(spotifyId, data, { contentType: 'audio/ogg' });
-                  
-                response.setHeader('Content-Type', 'audio/ogg');
-                response.send(data);
-                // .then(async () => {
-                //   const { data, error } = await this.supabase.storage
-                //     .from('tracks')
-                //     .createSignedUrl(spotifyId, 600);
-                //   if (error) console.log(error);
-                //   console.log(data.signedUrl);
-                //   response.redirect(data.signedUrl);
-                // });
-              },
-            );
-          });
+        }).pipe(
+          createWriteStream(join(process.cwd(), 'audio', 'audio.opus'), {
+            flags: 'w',
+          })
+            .on('finish', () => {
+              readFile(
+                join(process.cwd(), 'audio', 'audio.opus'),
+                (err, data) => {
+                  if (err) response.sendStatus(500);
+                  response.setHeader('Content-Type', 'audio/ogg');
+                  response.send(data);
+                },
+              );
+            })
+            .on('error', () => {
+              console.log('error');
+            }),
+        );
+        // .on('finish', () => {
+        //   readFile(
+        //     join(process.cwd(), 'audio', 'audio.opus'),
+        //     (err, data) => {
+        //       this.supabase.storage
+        //         .from('tracks')
+        //         .upload(spotifyId, data, { contentType: 'audio/ogg' });
+
+        //       response.setHeader('Content-Type', 'audio/ogg');
+        //       response.send(data);
+        //       // .then(async () => {
+        //       //   const { data, error } = await this.supabase.storage
+        //       //     .from('tracks')
+        //       //     .createSignedUrl(spotifyId, 600);
+        //       //   if (error) console.log(error);
+        //       //   console.log(data.signedUrl);
+        //       //   response.redirect(data.signedUrl);
+        //       // });
+        //     },
+        //   );
+        //);
       } catch (error) {
         throw new BadGatewayException();
       }
