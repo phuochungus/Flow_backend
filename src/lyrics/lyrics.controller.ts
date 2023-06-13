@@ -1,10 +1,12 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { LyricsService } from './lyrics.service';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('lyrics')
 export class LyricsController {
   constructor(private readonly lyricsService: LyricsService) {}
 
+  @UseInterceptors(CacheInterceptor)
   @Get('/:id')
   findOne(@Param('id') id: string) {
     return this.lyricsService.findOne(id);
