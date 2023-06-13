@@ -6,6 +6,7 @@ import {
   UseGuards,
   UseInterceptors,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { Response } from 'express';
@@ -98,7 +99,9 @@ export class TracksController {
     },
   })
   async getLyric(@Param('id') id: string): Promise<Lyrics[]> {
-    return await this.spotifyApiService.getLyricOrFail(id);
+    const lyrics = await this.spotifyApiService.getLyric(id);
+    if (lyrics) return lyrics;
+    throw new NotFoundException();
   }
 
   @Get('/top50')
