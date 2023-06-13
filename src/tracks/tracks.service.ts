@@ -93,14 +93,15 @@ export class TracksService {
             ),
           )
           .on('finish', () => {
-            console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
             const file = readFileSync(
               join(process.cwd(), 'audio', spotifyId + '.opus'),
             );
+            console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
             this.supabase.storage
               .from('tracks')
               .upload(spotifyId, file, { contentType: 'audio/ogg' });
             response.setHeader('Content-Type', 'audio/ogg');
+            console.log('send response');
             response.send(file);
           });
       } catch (error) {
