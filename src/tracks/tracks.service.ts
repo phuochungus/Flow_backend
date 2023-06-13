@@ -69,13 +69,13 @@ export class TracksService {
       const { data, error } = await this.supabase.storage
         .from('tracks')
         .createSignedUrl(spotifyId, 600);
-      if (error) console.log(error);
+      if (error) throw new BadGatewayException();
       response.redirect(data.signedUrl);
     } else {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
         await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
-      console.log(youtubeURL);
+      // console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {
           requestOptions: {
@@ -98,15 +98,17 @@ export class TracksService {
             const file = readFileSync(
               join(process.cwd(), 'audio', spotifyId + '.opus'),
             );
-            console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
+            // console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
             this.supabase.storage
               .from('tracks')
               .upload(spotifyId, file, { contentType: 'audio/ogg' });
             response.setHeader('Content-Type', 'audio/ogg');
-            console.log('send response');
+            // console.log('send response');
             response.send(file);
-            unlink(join(process.cwd(), 'audio', spotifyId + '.opus'), () => {
-              console.log('remove success');
+            response.on('finish', () => {
+              unlink(join(process.cwd(), 'audio', spotifyId + '.opus'), () => {
+                // console.log('remove success');
+              });
             });
           });
       } catch (error) {
