@@ -20,13 +20,13 @@ import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
       host: process.env.REDIS_URL || 'localhost:6379',
       ttl: 1 * 60 * 60 * 1000,
     }),
-    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGODB_URL || 'localhost:27017', {
       autoIndex: true,
     }),
