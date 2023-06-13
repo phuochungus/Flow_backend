@@ -8,8 +8,10 @@ import youtubedl from 'youtube-dl-exec';
 import {
   createReadStream,
   createWriteStream,
+  fstat,
   readFile,
   readFileSync,
+  unlink,
 } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -63,7 +65,7 @@ export class TracksService {
   }
 
   async playExperiment(spotifyId: string, response: Response) {
-    if ((await this.fileExistInBucket(spotifyId)) && false) {
+    if (await this.fileExistInBucket(spotifyId)) {
       const { data, error } = await this.supabase.storage
         .from('tracks')
         .createSignedUrl(spotifyId, 600);
@@ -103,6 +105,9 @@ export class TracksService {
             response.setHeader('Content-Type', 'audio/ogg');
             console.log('send response');
             response.send(file);
+            unlink(join(process.cwd(), 'audio', spotifyId + '.opus'), () => {
+              console.log('remove success');
+            });
           });
       } catch (error) {
         throw new BadGatewayException();
