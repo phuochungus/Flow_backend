@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -136,13 +136,17 @@ export class SpotifyApiService {
     return (await this.spotifyWebApi.getTrack(id)).body;
   }
 
-  async getLyric(spotifyId: string): Promise<Lyrics[]> {
-    const res = await this.httpService.axiosRef.get(
-      'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
-    );
-    return res.data.lines.map((e: { startTimeMs: string; words: string }) => {
-      return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
-    });
+  async getLyricOrFail(spotifyId: string): Promise<Lyrics[]> {
+    try {
+      const res = await this.httpService.axiosRef.get(
+        'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
+      );
+      return res.data.lines.map((e: { startTimeMs: string; words: string }) => {
+        return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
+      });
+    } catch (error) {
+      if (error.response.status == 404) throw new NotFoundException();
+    }
   }
 
   async getPlaylistTracks(id: string): Promise<Track[]> {
