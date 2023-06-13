@@ -48,6 +48,7 @@
     "crypto-js": "^4.1.1",
     "fuse.js": "^6.6.2",
     "mongoose": "^7.0.5",
+    "nest": "^0.1.6",
     "node-youtube-music": "^0.10.2",
     "passport": "^0.6.0",
     "passport-facebook": "^3.0.0",
