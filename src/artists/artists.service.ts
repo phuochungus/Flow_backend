@@ -20,7 +20,6 @@ export class ArtistsService {
       )
     ).data.artist.bio;
     return {
-      type: EntityType.artist,
       ...artist,
       bio: {
         summary,
