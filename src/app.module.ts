@@ -26,7 +26,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
         store: await redisStore({
-          url: config.get<string>('REDIS_URL') || 'localhost:6379',
+          url:
+            config.get<string>('REDIS_INTERNAL_URL') ||
+            config.get<string>('REDIS_URL') ||
+            'localhost:6379',
         }),
       }),
       inject: [ConfigService],
