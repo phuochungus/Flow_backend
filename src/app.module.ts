@@ -14,6 +14,7 @@ import { SearchModule } from './search/search.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
 import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.module';
 import { SeminarModule } from './seminar/seminar.module';
+import { LyricsModule } from './lyrics/lyrics.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SeminarModule } from './seminar/seminar.module';
     YoutubeApiModule,
     SpotifyToYoutubeModule,
     SeminarModule,
+    LyricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
