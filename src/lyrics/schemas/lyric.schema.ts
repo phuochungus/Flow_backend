@@ -7,7 +7,7 @@ import { Lyrics } from '../../tracks/entities/lyrics.entity';
   autoIndex: true,
 })
 export class TrackLyrics {
-  @Prop({ unique: true })
+  @Prop({ unique: true, required: true })
   trackId: string;
 
   @Prop({
@@ -18,8 +18,9 @@ export class TrackLyrics {
         _id: false,
       },
     ],
+    required: false,
   })
-  lyrics: Lyrics[];
+  lyrics?: Lyrics[];
 }
 
 const TrackLyricsSchema = SchemaFactory.createForClass(TrackLyrics);
