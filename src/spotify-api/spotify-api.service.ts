@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -52,9 +52,14 @@ export class SpotifyApiService {
       )
     ).body;
 
-    let albumWithoutPopularity = (
-      await this.spotifyWebApi.getAlbums(res.albums.items.map(({ id }) => id))
-    ).body;
+    let albumWithoutPopularity;
+    if (res.albums) {
+      albumWithoutPopularity = (
+        await this.spotifyWebApi.getAlbums(res.albums.items.map(({ id }) => id))
+      ).body;
+    } else {
+      albumWithoutPopularity = [];
+    }
 
     let albums: SimplifiedAlbumWithPopularity[] =
       albumWithoutPopularity.albums.map((e) => {
@@ -70,28 +75,38 @@ export class SpotifyApiService {
         };
       });
 
-    let tracks: SimplifedTrackWithPopularity[] = res.tracks.items.map((e) => {
-      return {
-        id: e.id,
-        type: EntityType.track,
-        name: e.name,
-        images: e.album.images,
-        artists: e.artists.map((e) => {
-          return { name: e.name, id: e.id };
-        }),
-        popularity: e.popularity,
-      };
-    });
+    let tracks: SimplifedTrackWithPopularity[];
+    if (res.tracks) {
+      tracks = res.tracks.items.map((e) => {
+        return {
+          id: e.id,
+          type: EntityType.track,
+          name: e.name,
+          images: e.album.images,
+          artists: e.artists.map((e) => {
+            return { name: e.name, id: e.id };
+          }),
+          popularity: e.popularity,
+        };
+      });
+    } else {
+      tracks = [];
+    }
 
-    let artists: SimplifiedArtistWithPopulary[] = res.artists.items.map((e) => {
-      return {
-        id: e.id,
-        type: EntityType.artist,
-        name: e.name,
-        images: e.images,
-        popularity: e.popularity,
-      };
-    });
+    let artists: SimplifiedArtistWithPopulary[];
+    if (res.artists) {
+      artists = res.artists.items.map((e) => {
+        return {
+          id: e.id,
+          type: EntityType.artist,
+          name: e.name,
+          images: e.images,
+          popularity: e.popularity,
+        };
+      });
+    } else {
+      artists = [];
+    }
 
     artists = artists.filter((e) => e.images.length != 0);
     artists = artists.filter((e) => e.popularity != 0);
@@ -122,8 +137,10 @@ export class SpotifyApiService {
 
     let result = fuse.search(searchString);
     result.sort((n1, n2) => {
-      const tmp = n1.score - n2.score;
-      if (tmp != 0) return tmp;
+      if (n1.score && n2.score) {
+        const tmp = n1.score - n2.score;
+        if (tmp != 0) return tmp;
+      }
       return n2.item.popularity - n1.item.popularity;
     });
     const originArray = result.map((e) => {
@@ -136,7 +153,7 @@ export class SpotifyApiService {
     return (await this.spotifyWebApi.getTrack(id)).body;
   }
 
-  async getLyricOrFail(spotifyId: string): Promise<Lyrics[]> {
+  async getLyricOrFail(spotifyId: string): Promise<Lyrics[] | null> {
     try {
       const res = await this.httpService.axiosRef.get(
         'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
@@ -145,25 +162,26 @@ export class SpotifyApiService {
         return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
       });
     } catch (error) {
-      if (error.response.status == 404) throw new NotFoundException();
+      if (error.response.status == 404) return null;
+      throw error;
     }
   }
 
   async getPlaylistTracks(id: string): Promise<Track[]> {
-    return (await this.spotifyWebApi.getPlaylistTracks(id)).body.items.map(
-      (e) => {
-        return {
-          id: e.track.id,
-          name: e.track.name,
-          type: EntityType.track,
-          images: e.track.album.images,
-          duration_ms: e.track.duration_ms,
-          artists: e.track.artists.map((e) => {
-            return { id: e.id, name: e.name };
-          }),
-        };
-      },
-    );
+    let tracks = (await this.spotifyWebApi.getPlaylistTracks(id)).body.items;
+    tracks = tracks.filter((e) => e && e.track);
+    return tracks.map((e) => {
+      return {
+        id: e!.track!.id,
+        name: e!.track!.name,
+        type: EntityType.track,
+        images: e!.track!.album.images,
+        duration_ms: e!.track!.duration_ms,
+        artists: e!.track!.artists.map((e) => {
+          return { id: e.id, name: e.name };
+        }),
+      };
+    });
   }
 
   async findOneTrackWithFormat(id: string): Promise<Track> {
@@ -264,7 +282,7 @@ export class SpotifyApiService {
     const artistIds = new Set<string>();
 
     tracks.items.forEach((e) => {
-      e.track.artists.forEach((artist) => artistIds.add(artist.id));
+      e.track?.artists.forEach((artist) => artistIds.add(artist.id));
     });
     let artists = await this.spotifyWebApi.getArtists(Array.from(artistIds));
     return artists.body.artists;
