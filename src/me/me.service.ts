@@ -55,9 +55,9 @@ export class MeService {
 
   async displaySearchHistory(user: any): Promise<SimplifiedItem[]> {
     const items: recentlySearchItem[] = user.recentlySearch;
-    const artists = [];
-    const albums = [];
-    const tracks = [];
+    const artists: string[] = [];
+    const albums: string[] = [];
+    const tracks: string[] = [];
     for (let index in items) {
       let { id, type } = items[index];
       switch (type) {
@@ -146,7 +146,7 @@ export class MeService {
       duration_ms: number;
       images: SpotifyApi.ImageObject[];
       artists: { id: string; name: string }[];
-    }[];
+    }[] = [];
     await Promise.all(promises).then((value) => {
       result = value;
     });
