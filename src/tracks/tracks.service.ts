@@ -70,7 +70,7 @@ export class TracksService {
         .from('tracks')
         .createSignedUrl(spotifyId, 600);
       if (error) throw new BadGatewayException();
-      response.redirect(data.signedUrl);
+      response.redirect(data!.signedUrl);
     } else {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
