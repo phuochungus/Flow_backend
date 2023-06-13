@@ -98,7 +98,7 @@ export class TracksController {
     },
   })
   async getLyric(@Param('id') id: string): Promise<Lyrics[]> {
-    return await this.spotifyApiService.getLyric(id);
+    return await this.spotifyApiService.getLyricOrFail(id);
   }
 
   @Get('/top50')
