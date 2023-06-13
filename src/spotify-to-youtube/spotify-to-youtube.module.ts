@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { SpotifyToYoutubeService } from './spotify-to-youtube.service';
-import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
+import { YoutubeApiModule } from '../youtube-api/youtube-api.module';
 
 @Module({
+  imports: [YoutubeApiModule],
   providers: [SpotifyToYoutubeService],
   exports: [SpotifyToYoutubeService],
 })
