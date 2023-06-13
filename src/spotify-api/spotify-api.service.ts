@@ -153,7 +153,7 @@ export class SpotifyApiService {
     return (await this.spotifyWebApi.getTrack(id)).body;
   }
 
-  async getLyricOrFail(spotifyId: string): Promise<Lyrics[] | null> {
+  async getLyric(spotifyId: string): Promise<Lyrics[] | null> {
     try {
       const res = await this.httpService.axiosRef.get(
         'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
