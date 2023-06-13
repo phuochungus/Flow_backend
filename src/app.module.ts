@@ -23,8 +23,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
-      host: process.env.REDIS_URL || 'localhost',
-      port: 6379,
+      host: process.env.REDIS_TLS_URL || 'localhost:6379',
       ttl: 1 * 60 * 60 * 1000,
     }),
     ConfigModule.forRoot({ isGlobal: true }),
