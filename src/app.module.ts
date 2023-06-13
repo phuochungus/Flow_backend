@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MeModule } from './me/me.module';
@@ -16,16 +15,22 @@ import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.
 import { SeminarModule } from './seminar/seminar.module';
 import { LyricsModule } from './lyrics/lyrics.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-yet';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    CacheModule.register({
+    CacheModule.registerAsync<RedisClientOptions>({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
+        store: await redisStore({
+          url: config.get<string>(process.env.REDIS_URL || 'localhost:6379'),
+        }),
+      }),
+      inject: [ConfigService],
       isGlobal: true,
-      store: redisStore,
-      host: process.env.REDIS_URL || 'localhost:6379',
-      ttl: 1 * 60 * 60 * 1000,
     }),
     MongooseModule.forRoot(process.env.MONGODB_URL || 'localhost:27017', {
       autoIndex: true,
