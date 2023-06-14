@@ -1,7 +1,9 @@
-import { PickType } from '@nestjs/swagger';
-import { Artist } from './artist.entity';
+import { Prop } from '@nestjs/mongoose';
 
-export class SimplifiedArtist extends PickType(Artist, [
-  'id',
-  'name',
-] as const) {}
+export class SimplifiedArtist {
+  @Prop()
+  id: string;
+
+  @Prop()
+  name: string;
+}
