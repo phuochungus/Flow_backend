@@ -30,7 +30,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     spotifyTrack: SpotifyApi.SingleTrackResponse,
   ): Promise<string> {
     const youtubeId = await this.getYoutubeIdFromSpotifyTrack(spotifyTrack);
-    console.log(youtubeId);
+    // console.log(youtubeId);
     // return `https://www.youtube.com/watch?v=${youtubeId}`;
     return youtubeId;
   }
@@ -71,7 +71,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
       0.5,
     );
 
-    console.log(filterResult);
+    // console.log(filterResult);
 
     filterResult = filterResult.filter(
       (e) =>
