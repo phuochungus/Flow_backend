@@ -94,7 +94,9 @@ export class MeService {
             };
           }
         })
-        .catch(() => {}),
+        .catch((error) => {
+          console.log(error);
+        }),
 
       this.spotifyApiService.spotifyWebApi
         .getArtists(artists)
@@ -110,7 +112,9 @@ export class MeService {
             };
           }
         })
-        .catch(() => {}),
+        .catch((error) => {
+          console.log(error);
+        }),
 
       this.spotifyApiService.spotifyWebApi
         .getTracks(tracks)
@@ -129,7 +133,9 @@ export class MeService {
             };
           }
         })
-        .catch(() => {}),
+        .catch((error) => {
+          console.log(error);
+        }),
     ]);
     return returnArray;
   }
