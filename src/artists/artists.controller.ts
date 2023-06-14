@@ -15,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { ArtistWithIsFavourite } from './entities/artist-with-isFavourite.entity';
 import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('artists')
 @Controller('artists')
@@ -27,10 +28,12 @@ export class ArtistsController {
   @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
+  @UseInterceptors(CacheInterceptor)
   async getArtistInfo(@Param('id') artistId: string) {
     return await this.artistsService.getArtistInfo(artistId);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get('/typical_artists')
   async getTypicalArtists() {
     return await this.artistsService.getTypicalArtists();
