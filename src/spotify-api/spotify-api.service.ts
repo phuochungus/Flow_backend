@@ -6,12 +6,12 @@ import Fuse from 'fuse.js';
 import { HttpService } from '@nestjs/axios';
 import { Track } from 'src/tracks/entities/track.entity';
 import { Lyrics } from 'src/tracks/entities/lyrics.entity';
-import { Album, AlbumType, EntityType } from 'src/albums/entities/album.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
 import { SearchResult } from 'src/search/dto/search-track.dto';
 import { SimplifiedAlbumWithPopularity } from 'src/albums/entities/simplified-album-for-search.dto';
 import { SimplifedTrackWithPopularity } from 'src/tracks/entities/simplify-track-for-search.dto';
 import { SimplifiedArtistWithPopulary } from 'src/artists/entities/simplified-artist-for-search.entity';
+import { EntityType, Album, AlbumType } from '../albums/schemas/album.schema';
 
 export type SimplifiedEntity =
   | SimplifedTrackWithPopularity

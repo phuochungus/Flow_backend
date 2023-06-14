@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { HttpService } from '@nestjs/axios';
-import { EntityType } from 'src/albums/entities/album.entity';
 import { SimplifiedArtistWithImages } from './entities/simplified-artist-with-images.entity';
 import { Artist } from './entities/artist.entity';
+import { EntityType } from '../albums/schemas/album.schema';
 
 @Injectable()
 export class ArtistsService {

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { EntityType } from 'src/albums/entities/album.entity';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
@@ -7,6 +6,7 @@ import { SimplifiedAlbum } from 'src/albums/entities/album-simplofy.entity';
 import { PushHistoryDTO } from './dto/PushHistory.dto';
 import { SimplifiedTrack } from 'src/tracks/entities/simplified-track.dto';
 import { Track } from 'src/tracks/entities/track.entity';
+import { EntityType } from '../albums/schemas/album.schema';
 
 export type SimplifiedItem =
   | SimplifiedArtistWithImages

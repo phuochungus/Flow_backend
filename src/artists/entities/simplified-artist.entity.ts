@@ -1,5 +1,6 @@
-import { Prop } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+@Schema({ _id: false, timestamps: false, versionKey: false })
 export class SimplifiedArtist {
   @Prop()
   id: string;
@@ -7,3 +8,6 @@ export class SimplifiedArtist {
   @Prop()
   name: string;
 }
+
+export const SimplifiedArtistSchema =
+  SchemaFactory.createForClass(SimplifiedArtist);

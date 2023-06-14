@@ -35,7 +35,6 @@ export class ArtistsController {
   @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
-  // @UseInterceptors(CacheInterceptor)
   async getArtistInfo(@Param('id') artistId: string) {
     const artistsInfo: Artist | undefined = await this.cacheManager.get(
       `/artists/artist/${artistId}`,

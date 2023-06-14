@@ -1,4 +1,4 @@
-import { EntityType } from 'src/albums/entities/album.entity';
+import { EntityType } from '../../albums/schemas/album.schema';
 import { SimplifiedTrack } from './simplified-track.dto';
 
 export class SimplifedTrackWithPopularity extends SimplifiedTrack {

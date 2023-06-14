@@ -1,5 +1,5 @@
 import { ApiExtraModels, PickType } from '@nestjs/swagger';
-import { Album } from './album.entity';
+import { Album } from '../schemas/album.schema';
 
 export class SimplifiedAlbum extends PickType(Album, [
   'id',
