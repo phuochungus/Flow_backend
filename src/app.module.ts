@@ -29,6 +29,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           url:
             config.get<string>('REDIS_INTERNAL_URL') ||
             config.get<string>('REDIS_URL'),
+          ttl: 12 * 60 * 60 * 1000,
         }),
       }),
       inject: [ConfigService],
