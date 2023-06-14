@@ -1,6 +1,5 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { EntityType } from 'src/albums/entities/album.entity';
-
+import { EntityType } from '../../albums/schemas/album.schema';
 export class PushHistoryDTO {
   @IsString()
   id: string;
