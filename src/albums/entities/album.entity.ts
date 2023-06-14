@@ -12,7 +12,7 @@ export enum EntityType {
 export enum AlbumType {
   album = 'album',
   single = 'single',
-  compilation = 'conpilation',
+  compilation = 'compilation',
 }
 
 export class Album {
