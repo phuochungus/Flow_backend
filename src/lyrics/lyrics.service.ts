@@ -32,6 +32,7 @@ export class LyricsService {
         throw new NotFoundException();
       }
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }

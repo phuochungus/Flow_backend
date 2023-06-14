@@ -28,6 +28,7 @@ export default class JWTStrategy extends PassportStrategy(Strategy, 'jwt') {
         .findOne({ _id: payload._id })
         .select(['-password']);
     } catch (error) {
+      console.log(error)
       if (error instanceof NotFoundException) throw new UnauthorizedException();
       else throw error;
     }
