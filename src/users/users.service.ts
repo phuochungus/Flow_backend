@@ -28,9 +28,9 @@ export class UsersService {
       const createdUser = new this.userModel(createUserDto);
       return await createdUser.save();
     } catch (error) {
-      console.log(error);
       if (error.code == 11000)
         throw new ConflictException('email or username already taken!');
+      console.log(error);
       throw error;
     }
   }
