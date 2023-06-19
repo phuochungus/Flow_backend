@@ -8,8 +8,6 @@ import youtubedl from 'youtube-dl-exec';
 import {
   createReadStream,
   createWriteStream,
-  fstat,
-  readFile,
   readFileSync,
   unlink,
 } from 'fs';
@@ -25,7 +23,7 @@ export class TracksService {
   constructor(
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
-  ) {}
+  ) { }
 
   private supabase = createClient(
     process.env.SUPABASE_PROJECT_URL!,
