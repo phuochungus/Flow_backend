@@ -95,7 +95,7 @@ export class MeService {
           }
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         }),
 
       this.spotifyApiService.spotifyWebApi
@@ -113,7 +113,7 @@ export class MeService {
           }
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         }),
 
       this.spotifyApiService.spotifyWebApi
@@ -134,7 +134,7 @@ export class MeService {
           }
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
         }),
     ]);
     return returnArray;

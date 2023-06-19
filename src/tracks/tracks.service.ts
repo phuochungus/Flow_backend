@@ -47,7 +47,7 @@ export class TracksService {
       response.setHeader('Transfer-Encoding', 'chunked');
       file.pipe(response);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw new BadGatewayException();
     }
   }
@@ -111,7 +111,7 @@ export class TracksService {
             });
           });
       } catch (error) {
-        console.log(error);
+        console.error(error);
         throw new BadGatewayException();
       }
     }
@@ -122,7 +122,7 @@ export class TracksService {
       return await this.spotifyApiService.findOneTrackWithFormat(id);
     } catch (error) {
       if (error.body.error.status == 400) throw new BadRequestException();
-      console.log(error);
+      console.error(error);
       throw new BadGatewayException();
     }
   }

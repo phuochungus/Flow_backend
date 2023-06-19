@@ -164,7 +164,7 @@ export class SpotifyApiService {
       });
     } catch (error) {
       if (error.response.status == 404) return null;
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

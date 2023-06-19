@@ -24,7 +24,7 @@ export class AlbumsService {
       if (album) return album;
       else throw new NotFoundException();
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

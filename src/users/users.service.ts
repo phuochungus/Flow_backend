@@ -15,7 +15,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     if (createUserDto.password)
@@ -30,7 +30,7 @@ export class UsersService {
     } catch (error) {
       if (error.code == 11000)
         throw new ConflictException('email or username already taken!');
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }

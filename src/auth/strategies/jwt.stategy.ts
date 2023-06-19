@@ -29,7 +29,7 @@ export default class JWTStrategy extends PassportStrategy(Strategy, 'jwt') {
         .select(['-password']);
     } catch (error) {
       if (error instanceof NotFoundException) throw new UnauthorizedException();
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
