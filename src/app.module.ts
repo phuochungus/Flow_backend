@@ -28,7 +28,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         store: await redisStore({
           url:
             config.get<string>('REDIS_INTERNAL_URL') ||
-            config.get<string>('REDIS_URL'),
+            config.get<string>('REDIS_URL') || "redis://localhost:6379",
           ttl: 12 * 60 * 60 * 1000,
         }),
       }),
@@ -54,4 +54,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
