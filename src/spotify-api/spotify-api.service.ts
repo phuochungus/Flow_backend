@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -12,6 +12,8 @@ import { SimplifiedAlbumWithPopularity } from 'src/albums/entities/simplified-al
 import { SimplifedTrackWithPopularity } from 'src/tracks/entities/simplify-track-for-search.dto';
 import { SimplifiedArtistWithPopulary } from 'src/artists/entities/simplified-artist-for-search.entity';
 import { EntityType, Album, AlbumType } from '../albums/schemas/album.schema';
+import { TrackSimplifyWithViewCount } from '../tracks/entities/track-simplify-with-view-count.entity';
+import _ from 'lodash';
 
 export type SimplifiedEntity =
   | SimplifedTrackWithPopularity
@@ -198,6 +200,110 @@ export class SpotifyApiService {
         return { id: e.id, name: e.name };
       }),
     };
+  }
+
+  async findArtistWithFormatV2(artistId: string): Promise<Artist> {
+    try {
+      const [albums, artistInfo, relatedArtists, topTracks] = await Promise.all(
+        [
+          this.spotifyWebApi
+            .getArtistAlbums(artistId)
+            .then((response) => response.body.items),
+          this.spotifyWebApi
+            .getArtist(artistId)
+            .then((response) => response.body)
+            .then(
+              (artist) =>
+                new Promise<any>((resolve, reject) =>
+                  fetch(
+                    `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${artist.name}&api_key=${process.env.LASTFM_API_KEY}&format=json`,
+                  )
+                    .then((response) => response.json())
+                    .then((response) =>
+                      resolve({
+                        ...artist,
+                        bio: {
+                          summary: response.artist.bio.summary,
+                          content: response.artist.bio.content,
+                        },
+                      }),
+                    )
+                    .catch((error) => reject(error)),
+                ),
+            ),
+          this.spotifyWebApi
+            .getArtistRelatedArtists(artistId)
+            .then((response) => response.body.artists),
+          this.spotifyWebApi
+            .getArtistTopTracks(artistId, 'VN')
+            .then((response) => response.body.tracks)
+            .then((tracks) => _.take(tracks, 5))
+            .then((tracks) =>
+              tracks.map(
+                (trackInfo) =>
+                  new Promise<TrackSimplifyWithViewCount>((resolve, reject) => {
+                    (async () => {
+                      try {
+                        const youtubeId =
+                          await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(
+                            trackInfo,
+                          );
+                        const viewCount =
+                          await this.youtubeApiService.getViewCount(youtubeId);
+                        return resolve({
+                          id: trackInfo.id,
+                          name: trackInfo.name,
+                          artists: trackInfo.artists.map((artist) => {
+                            return { id: artist.id, name: artist.name };
+                          }),
+                          images: trackInfo.album.images,
+                          viewCount,
+                        });
+                      } catch (error) {
+                        console.error(error);
+                        return reject(error);
+                      }
+                    })();
+                  }),
+              ),
+            ),
+        ],
+      );
+
+      const artistMetaData: Artist = {
+        id: artistInfo.id,
+        type: EntityType.artist,
+        name: artistInfo.name,
+        images: artistInfo.images,
+        topTracks: await Promise.all(topTracks),
+        albums: albums.map((e) => {
+          return {
+            id: e.id,
+            type: EntityType.album,
+            artists: e.artists.map((artist) => {
+              return { id: artist.id, name: artist.name };
+            }),
+            images: e.images,
+            name: e.name,
+          };
+        }),
+        relatedArtists: relatedArtists.map((e) => {
+          return {
+            id: e.id,
+            name: e.name,
+            images: e.images,
+            type: EntityType.artist,
+          };
+        }),
+        bio: artistInfo.bio,
+      };
+      return artistMetaData;
+    } catch (error) {
+      if (error.body.error.status == 404)
+        throw new NotFoundException('ArtistId not found');
+      console.error(error);
+      throw error;
+    }
   }
 
   async findArtistWithFormat(id: string): Promise<Artist> {

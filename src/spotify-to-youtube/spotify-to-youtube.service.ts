@@ -4,6 +4,9 @@ import parseUrl from 'parse-url';
 import SpotifyToYoutubeMusic from 'spotify-to-ytmusic';
 import { YoutubeApiService } from '../youtube-api/youtube-api.service';
 import { toSeconds, parse } from 'iso8601-duration';
+import { InjectModel } from '@nestjs/mongoose';
+import { SpotifyToYoutube } from './schemas/spotify-to-youtube.schema';
+import { Model } from 'mongoose';
 
 export type YoutubeVideo = {
   youtubeId: string;
@@ -14,7 +17,11 @@ export type YoutubeVideo = {
 };
 @Injectable()
 export class SpotifyToYoutubeService implements OnModuleInit {
-  constructor(private youtubeApiService: YoutubeApiService) {}
+  constructor(
+    @InjectModel(SpotifyToYoutube.name)
+    private spotifyToYoutubeModel: Model<SpotifyToYoutube>,
+    private youtubeApiService: YoutubeApiService,
+  ) {}
   private searchMusics: (query: string) => Promise<any[]>;
   private spotifyToYoutubeMusic: any;
 
@@ -31,13 +38,26 @@ export class SpotifyToYoutubeService implements OnModuleInit {
   ): Promise<string> {
     const youtubeId = await this.getYoutubeIdFromSpotifyTrack(spotifyTrack);
     // console.log(youtubeId);
-    // return `https://www.youtube.com/watch?v=${youtubeId}`;
     return youtubeId;
+  }
+
+  private async storeDb(spotifyId: string, youtubeId: string) {
+    const createdDoc = new this.spotifyToYoutubeModel({
+      spotifyId: spotifyId,
+      youtubeId: youtubeId,
+    });
+    await createdDoc.save();
   }
 
   async getYoutubeIdFromSpotifyTrack(
     spotifyTrack: SpotifyApi.SingleTrackResponse,
-  ) {
+  ): Promise<string> {
+    const doc = await this.spotifyToYoutubeModel.findOne({
+      spotifyId: spotifyTrack.id,
+    });
+
+    if (doc) return doc.youtubeId;
+
     const youtubeUrl: string | undefined = await this.spotifyToYoutubeMusic(
       spotifyTrack.id,
     );
@@ -47,8 +67,10 @@ export class SpotifyToYoutubeService implements OnModuleInit {
         youtubeId,
       );
       const duration = toSeconds(parse(durationISO));
-      if (Math.abs(spotifyTrack.duration_ms / 1000 - duration) <= 1)
+      if (Math.abs(spotifyTrack.duration_ms / 1000 - duration) <= 1) {
+        this.storeDb(spotifyTrack.id, youtubeId);
         return youtubeId;
+      }
     }
 
     const searchResults: YoutubeVideo[] = await this.searchMusics(
@@ -82,7 +104,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     const resultYoutubeId = filterResult.length
       ? filterResult[0].youtubeId
       : searchResults[0].youtubeId;
-
+    this.storeDb(spotifyTrack.id, resultYoutubeId);
     return resultYoutubeId;
   }
 
