@@ -12,6 +12,10 @@ export class ArtistsService {
     private readonly httpService: HttpService,
   ) {}
 
+  async getArtistInfoV2(artistId: string): Promise<Artist> {
+    return await this.spotifyApiService.findArtistWithFormatV2(artistId);
+  }
+
   async getArtistInfo(artistId: string): Promise<Artist> {
     const artist = await this.spotifyApiService.findArtistWithFormat(artistId);
     const { summary, content } = (

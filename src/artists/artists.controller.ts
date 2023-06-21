@@ -47,6 +47,24 @@ export class ArtistsController {
     }
   }
 
+  @Get('v2/artist/:id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ArtistWithIsFavourite })
+  @ApiParam({ name: 'id', example: '00FQb4jTyendYWaN8pK0wa' })
+  @UseGuards(JWTAuthGuard)
+  @UseInterceptors(MarkUserFavouritesInterceptor)
+  async getArtistInfoV2(@Param('id') artistId: string) {
+    const artistsInfo: Artist | undefined = await this.cacheManager.get(
+      `/artists/artist/${artistId}`,
+    );
+    if (artistsInfo) return artistsInfo;
+    else {
+      const res = await this.artistsService.getArtistInfoV2(artistId);
+      this.cacheManager.set(`/artists/artist/${artistId}`, res);
+      return res;
+    }
+  }
+
   @UseInterceptors(CacheInterceptor)
   @Get('/typical_artists')
   async getTypicalArtists() {
