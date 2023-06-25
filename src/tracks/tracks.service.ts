@@ -5,12 +5,7 @@ import {
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
-import {
-  createReadStream,
-  createWriteStream,
-  readFileSync,
-  unlink,
-} from 'fs';
+import { createReadStream, createWriteStream, readFileSync, unlink } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
@@ -23,7 +18,7 @@ export class TracksService {
   constructor(
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
-  ) { }
+  ) {}
 
   private supabase = createClient(
     process.env.SUPABASE_PROJECT_URL!,
@@ -33,7 +28,7 @@ export class TracksService {
   async play(spotifyId: string, response: Response) {
     const track = await this.spotifyApiService.findOneTrack(spotifyId);
     const youtubeURL =
-      await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+      await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
     try {
       await youtubedl(youtubeURL, {
         noCheckCertificates: true,
@@ -50,6 +45,13 @@ export class TracksService {
       console.error(error);
       throw new BadGatewayException();
     }
+  }
+
+  async debugPlay(spotifyId: string) {
+    const track = await this.spotifyApiService.findOneTrack(spotifyId);
+    const youtubeURL =
+      await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
+    return youtubeURL;
   }
 
   private async fileExistInBucket(filename: string): Promise<boolean> {
@@ -73,7 +75,7 @@ export class TracksService {
     } else {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
-        await this.spotifyToYoutubeService.getYoutubeURLFromSpotify(track);
+        await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
       // console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {

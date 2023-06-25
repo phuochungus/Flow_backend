@@ -11,7 +11,7 @@ import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Album } from './schemas/album.schema';
-import { CACHE_MANAGER, CacheInterceptor } from '@nestjs/cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 
 @ApiTags('albums')

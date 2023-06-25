@@ -33,7 +33,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     });
   }
 
-  async getYoutubeURLFromSpotify(
+  async getYoutubeIdFromSpotify(
     spotifyTrack: SpotifyApi.SingleTrackResponse,
   ): Promise<string> {
     const youtubeId = await this.getYoutubeIdFromSpotifyTrack(spotifyTrack);
@@ -58,11 +58,11 @@ export class SpotifyToYoutubeService implements OnModuleInit {
 
     if (doc) return doc.youtubeId;
 
-    const youtubeUrl: string | undefined = await this.spotifyToYoutubeMusic(
+    const youtubeURL: string | undefined = await this.spotifyToYoutubeMusic(
       spotifyTrack.id,
     );
-    if (youtubeUrl) {
-      const youtubeId = parseUrl(youtubeUrl).query.v;
+    if (youtubeURL) {
+      const youtubeId = parseUrl(youtubeURL).query.v;
       const durationISO = await this.youtubeApiService.getDurationInISO8601(
         youtubeId,
       );
@@ -74,18 +74,15 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     }
 
     const searchResults: YoutubeVideo[] = await this.searchMusics(
-      spotifyTrack.name,
+      spotifyTrack.name + spotifyTrack.artists.map((e) => e.name),
     );
+
     if (searchResults.length == 0) throw new NotFoundException();
-    let filterResult = this.filterResults(
+    let filterResultByTitle = this.filterResults(
       searchResults.map((e) => {
         return {
           ...e,
-          artists: e.artists
-            .map((e) => {
-              return e.name;
-            })
-            .toString(),
+          artists: e.artists.map((e) => e.name).toString(),
         };
       }),
       'title',
@@ -93,16 +90,14 @@ export class SpotifyToYoutubeService implements OnModuleInit {
       0.5,
     );
 
-    // console.log(filterResult);
-
-    filterResult = filterResult.filter(
+    filterResultByTitle = filterResultByTitle.filter(
       (e) =>
         Math.abs(e.duration.totalSeconds - spotifyTrack.duration_ms / 1000) <=
         1,
     );
 
-    const resultYoutubeId = filterResult.length
-      ? filterResult[0].youtubeId
+    const resultYoutubeId = filterResultByTitle.length
+      ? filterResultByTitle[0].youtubeId
       : searchResults[0].youtubeId;
     this.storeDb(spotifyTrack.id, resultYoutubeId);
     return resultYoutubeId;
