@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { Track, TrackWithIsFavourite } from './entities/track.entity';
 import { Lyrics, responseLyricArray } from './entities/lyrics.entity';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('tracks')
 @Controller('tracks')
@@ -63,6 +64,11 @@ export class TracksController {
     return await this.tracksService.play(id, res);
   }
 
+  @Get('/debug/play/:id')
+  async playDebug(@Param('id') id: string) {
+    return await this.tracksService.debugPlay(id);
+  }
+
   @Get('v2/play/:id')
   @ApiParam({ name: 'id', example: '3zhbXKFjUDw40pTYyCgt1Y' })
   @ApiOperation({ summary: 'an audio streaming API' })
@@ -86,6 +92,7 @@ export class TracksController {
 
   @Get('lyrics/:id')
   @ApiParam({ name: 'id', example: '3zhbXKFjUDw40pTYyCgt1Y' })
+  @UseInterceptors(CacheInterceptor)
   @ApiOkResponse({
     schema: {
       type: 'array',
@@ -104,6 +111,7 @@ export class TracksController {
     throw new NotFoundException();
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get('/top50')
   @ApiOkResponse({
     type: [Track],
@@ -113,6 +121,7 @@ export class TracksController {
   }
 
   @Get('/explore')
+  @UseInterceptors(CacheInterceptor)
   @ApiOkResponse({
     type: [Track],
   })
