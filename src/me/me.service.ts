@@ -87,55 +87,46 @@ export class MeService {
     try {
       const [albumsRes, tracksRes, artistsRes] = await Promise.all([
         albums.length > 0
-          ? this.spotifyApiService.spotifyWebApi
-              .getAlbums(albums)
-              .then((response) => response.body.albums)
-              .then((albums) =>
-                albums.map((album) => {
-                  return {
-                    id: album.id,
-                    type: EntityType.album,
-                    name: album.name,
-                    images: album.images,
-                    artists: album.artists.map(({ id, name }) => {
-                      return { id, name };
-                    }),
-                  };
-                }),
-              )
+          ? this.spotifyApiService.getAlbums(albums).then((albums) =>
+              albums.map((album) => {
+                return {
+                  id: album.id,
+                  type: EntityType.album,
+                  name: album.name,
+                  images: album.images,
+                  artists: album.artists.map(({ id, name }) => {
+                    return { id, name };
+                  }),
+                };
+              }),
+            )
           : Promise.resolve([]),
         tracks.length > 0
-          ? this.spotifyApiService.spotifyWebApi
-              .getTracks(tracks)
-              .then((response) => response.body.tracks)
-              .then((tracks) =>
-                tracks.map((track) => {
-                  return {
-                    id: track.id,
-                    type: EntityType.track,
-                    name: track.name,
-                    images: track.album.images,
-                    artists: track.artists.map(({ id, name }) => {
-                      return { id, name };
-                    }),
-                  };
-                }),
-              )
+          ? this.spotifyApiService.getTracks(tracks).then((tracks) =>
+              tracks.map((track) => {
+                return {
+                  id: track.id,
+                  type: EntityType.track,
+                  name: track.name,
+                  images: track.album.images,
+                  artists: track.artists.map(({ id, name }) => {
+                    return { id, name };
+                  }),
+                };
+              }),
+            )
           : Promise.resolve([]),
         artists.length > 0
-          ? this.spotifyApiService.spotifyWebApi
-              .getArtists(artists)
-              .then((response) => response.body.artists)
-              .then((artists) =>
-                artists.map((artist) => {
-                  return {
-                    id: artist.id,
-                    type: EntityType.artist,
-                    name: artist.name,
-                    images: artist.images,
-                  };
-                }),
-              )
+          ? this.spotifyApiService.getArtists(artists).then((artists) =>
+              artists.map((artist) => {
+                return {
+                  id: artist.id,
+                  type: EntityType.artist,
+                  name: artist.name,
+                  images: artist.images,
+                };
+              }),
+            )
           : Promise.resolve([]),
       ]);
       itemsArray = [...itemsArray, ...albumsRes, ...tracksRes, ...artistsRes];
@@ -145,6 +136,7 @@ export class MeService {
       });
       return itemsArray;
     } catch (error) {
+      console.error(error);
       throw new BadGatewayException();
     }
   }
