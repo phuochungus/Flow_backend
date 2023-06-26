@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -14,6 +14,8 @@ import { SimplifiedArtistWithPopulary } from 'src/artists/entities/simplified-ar
 import { EntityType, Album, AlbumType } from '../albums/schemas/album.schema';
 import { TrackSimplifyWithViewCount } from '../tracks/entities/track-simplify-with-view-count.entity';
 import _ from 'lodash';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 export type SimplifiedEntity =
   | SimplifedTrackWithPopularity
@@ -26,6 +28,8 @@ export class SpotifyApiService {
     private readonly httpService: HttpService,
     private readonly youtubeApiService: YoutubeApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {
     this.requestAccessToken();
     setInterval(this.requestAccessToken, 3300000);
@@ -47,6 +51,14 @@ export class SpotifyApiService {
     queryString: string,
     page: number = 0,
   ): Promise<SearchResult> {
+    const cachedResult = await this.cacheManager.get(
+      `search_page_${page}_query_${queryString}`,
+    );
+
+    if (cachedResult) {
+      return cachedResult as SearchResult;
+    }
+
     const res = (
       await this.spotifyWebApi.search(
         queryString,
@@ -121,6 +133,13 @@ export class SpotifyApiService {
 
     const mostRelevant = this.calculateScore(mostRelevantResults, queryString);
 
+    this.cacheManager.set(`search_page_${page}_query_${queryString}`, {
+      mostRelevant,
+      albums,
+      tracks,
+      artists,
+    });
+
     return {
       mostRelevant,
       albums,
@@ -153,28 +172,54 @@ export class SpotifyApiService {
   }
 
   async findOneTrack(id: string): Promise<SpotifyApi.SingleTrackResponse> {
-    return (await this.spotifyWebApi.getTrack(id)).body;
+    const cachedResult = await this.cacheManager.get(`track_${id}`);
+    if (cachedResult) return cachedResult as SpotifyApi.SingleTrackResponse;
+    try {
+      const track = (await this.spotifyWebApi.getTrack(id)).body;
+      this.cacheManager.set(`track_${id}`, track);
+      return track;
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async getLyric(spotifyId: string): Promise<Lyrics[] | null> {
     try {
+      const cachedLyrics = await this.cacheManager.get(`lyrics_${spotifyId}`);
+      if (cachedLyrics) {
+        if (cachedLyrics != 'null') return cachedLyrics as Lyrics[];
+        return null;
+      }
+
       const res = await this.httpService.axiosRef.get(
         'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
       );
-      return res.data.lines.map((e: { startTimeMs: string; words: string }) => {
-        return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
-      });
+      const lyrics = res.data.lines.map(
+        (e: { startTimeMs: string; words: string }) => {
+          return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
+        },
+      );
+
+      this.cacheManager.set(`lyrics_${spotifyId}`, lyrics);
+      return lyrics;
     } catch (error) {
-      if (error.response.status == 404) return null;
+      if (error.response.status == 404) {
+        this.cacheManager.set(`lyrics_${spotifyId}`, 'null');
+        return null;
+      }
       console.error(error);
       throw error;
     }
   }
 
   async getPlaylistTracks(id: string): Promise<Track[]> {
-    let tracks = (await this.spotifyWebApi.getPlaylistTracks(id)).body.items;
-    tracks = tracks.filter((e) => e && e.track);
-    return tracks.map((e) => {
+    const cachedResult = await this.cacheManager.get(`playlist_${id}`);
+    if (cachedResult) return cachedResult as Track[];
+
+    let tracksResponse = (await this.spotifyWebApi.getPlaylistTracks(id)).body
+      .items;
+    tracksResponse = tracksResponse.filter((e) => e && e.track);
+    const tracks = tracksResponse.map((e) => {
       return {
         id: e!.track!.id,
         name: e!.track!.name,
@@ -186,10 +231,13 @@ export class SpotifyApiService {
         }),
       };
     });
+
+    this.cacheManager.set(`playlist_${id}`, tracks);
+    return tracks;
   }
 
   async findOneTrackWithFormat(id: string): Promise<Track> {
-    const track = (await this.spotifyWebApi.getTrack(id)).body;
+    const track = await this.findOneTrack(id);
     return {
       id: track.id,
       name: track.name,
@@ -202,7 +250,13 @@ export class SpotifyApiService {
     };
   }
 
-  async findArtistWithFormatV2(artistId: string): Promise<Artist> {
+  async findArtistWithFormatV2(artistId: string): Promise<Artist | null> {
+    const cachedResult = await this.cacheManager.get(`artist_${artistId}`);
+    if (cachedResult) {
+      if (cachedResult != 'null') return cachedResult as Artist;
+      return null;
+    }
+
     try {
       const [albums, artistInfo, relatedArtists, topTracks] = await Promise.all(
         [
@@ -297,10 +351,13 @@ export class SpotifyApiService {
         }),
         bio: artistInfo.bio,
       };
+      this.cacheManager.set(`artist_${artistId}`, artistMetaData);
       return artistMetaData;
     } catch (error) {
-      if (error.body.error.status == 404)
-        throw new NotFoundException('ArtistId not found');
+      if (error.body.error.status >= 400) {
+        this.cacheManager.set(`artist_${artistId}`, 'null');
+        return null;
+      }
       console.error(error);
       throw error;
     }
@@ -355,20 +412,22 @@ export class SpotifyApiService {
   }
 
   async findOneAlbumWithFormat(id: string): Promise<Album> {
-    const album = (await this.spotifyWebApi.getAlbum(id)).body;
-    return {
-      id: album.id,
+    const cacheResult = await this.cacheManager.get(`album_${id}`);
+    if (cacheResult) return cacheResult as Album;
+    const albumRes = (await this.spotifyWebApi.getAlbum(id)).body;
+    const album = {
+      id: albumRes.id,
       type: EntityType.album,
-      album_type: AlbumType[album.album_type.toString()],
-      name: album.name,
-      images: album.images,
-      artists: album.artists.map(({ id, name }) => {
+      album_type: AlbumType[albumRes.album_type.toString()],
+      name: albumRes.name,
+      images: albumRes.images,
+      artists: albumRes.artists.map(({ id, name }) => {
         return { id, name };
       }),
-      total_duration: album.tracks.items.reduce((accumulate, current) => {
+      total_duration: albumRes.tracks.items.reduce((accumulate, current) => {
         return accumulate + current.duration_ms;
       }, 0),
-      track: album.tracks.items.map(({ id, name, duration_ms, artists }) => {
+      track: albumRes.tracks.items.map(({ id, name, duration_ms, artists }) => {
         return {
           id,
           name,
@@ -377,13 +436,19 @@ export class SpotifyApiService {
           artists: artists.map(({ id, name }) => {
             return { id, name };
           }),
-          images: album.images,
+          images: albumRes.images,
         };
       }),
     };
+
+    this.cacheManager.set(`album_${id}`, album);
+    return album;
   }
 
-  async getAlbumArtists(id: string) {
+  async getPlaylistArtists(id: string): Promise<SpotifyApi.ArtistObjectFull[]> {
+    const cacheResult = await this.cacheManager.get(`playlistArtists_${id}`);
+    if (cacheResult) return cacheResult as SpotifyApi.ArtistObjectFull[];
+
     const tracks = (
       await this.spotifyWebApi.getPlaylistTracks(id, { limit: 20 })
     ).body;
@@ -393,6 +458,7 @@ export class SpotifyApiService {
       e.track?.artists.forEach((artist) => artistIds.add(artist.id));
     });
     let artists = await this.spotifyWebApi.getArtists(Array.from(artistIds));
+    this.cacheManager.set(`playlistArtists_${id}`, artists.body.artists);
     return artists.body.artists;
   }
 }

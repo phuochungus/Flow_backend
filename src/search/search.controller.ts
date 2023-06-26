@@ -9,7 +9,6 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 export class SearchController {
   constructor(private readonly spotifyAPIService: SpotifyApiService) {}
   
-  @UseInterceptors(CacheInterceptor)
   @Get()
   async find(@Query() queryTrackDto: QueryTrackDTO) {
     return await this.spotifyAPIService.searchInSpotify(
