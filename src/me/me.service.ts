@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
@@ -48,18 +48,22 @@ export class MeService {
 
   async removeFromSearchHistory(user: any, id: string) {
     if (user.recentlySearch.length == 0) return;
+    if (id == 'all') {
+      user.recentlySearch = [];
+      await user.save();
+    }
     const index = user.recentlySearch.findIndex((e) => e.id == id);
     user.recentlySearch = this.removeFromArray(user.recentlySearch, index);
     await user.save();
   }
 
   async displaySearchHistory(user: any): Promise<SimplifiedItem[]> {
-    const items: recentlySearchItem[] = user.recentlySearch;
+    const orderedItems: recentlySearchItem[] = user.recentlySearch;
     const artists: string[] = [];
     const albums: string[] = [];
     const tracks: string[] = [];
-    for (let index in items) {
-      let { id, type } = items[index];
+    for (let index in orderedItems) {
+      let { id, type } = orderedItems[index];
       switch (type) {
         case EntityType.album:
           albums.push(id);
@@ -75,69 +79,69 @@ export class MeService {
       }
     }
 
-    let returnArray = new Array(items.length);
-    await Promise.all([
-      this.spotifyApiService.spotifyWebApi
-        .getAlbums(albums)
-        .then((value) => {
-          const albums = value.body.albums;
-          for (const album of albums) {
-            let index = items.findIndex((e) => e.id == album.id);
-            returnArray[index] = {
-              id: album.id,
-              type: EntityType.album,
-              name: album.name,
-              images: album.images,
-              artists: album.artists.map(({ id, name }) => {
-                return { id, name };
-              }),
-            };
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        }),
-
-      this.spotifyApiService.spotifyWebApi
-        .getArtists(artists)
-        .then((value) => {
-          const artists = value.body.artists;
-          for (const artist of artists) {
-            let index = items.findIndex((e) => e.id == artist.id);
-            returnArray[index] = {
-              id: artist.id,
-              type: EntityType.artist,
-              name: artist.name,
-              images: artist.images,
-            };
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        }),
-
-      this.spotifyApiService.spotifyWebApi
-        .getTracks(tracks)
-        .then((value) => {
-          const tracks = value.body.tracks;
-          for (const track of tracks) {
-            let index = items.findIndex((e) => e.id == track.id);
-            returnArray[index] = {
-              id: track.id,
-              type: EntityType.track,
-              name: track.name,
-              images: track.album.images,
-              artists: track.artists.map((e) => {
-                return { id: e.id, name: e.name };
-              }),
-            };
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        }),
-    ]);
-    return returnArray;
+    try {
+      const [albumsRes, tracksRes, artistsRes] = await Promise.all([
+        albums.length > 0
+          ? this.spotifyApiService.spotifyWebApi
+              .getAlbums(albums)
+              .then((response) => response.body.albums)
+              .then((albums) =>
+                albums.map((album) => {
+                  return {
+                    id: album.id,
+                    type: EntityType.album,
+                    name: album.name,
+                    images: album.images,
+                    artists: album.artists.map(({ id, name }) => {
+                      return { id, name };
+                    }),
+                  };
+                }),
+              )
+          : Promise.resolve([]),
+        tracks.length > 0
+          ? this.spotifyApiService.spotifyWebApi
+              .getTracks(tracks)
+              .then((response) => response.body.tracks)
+              .then((tracks) =>
+                tracks.map((track) => {
+                  return {
+                    id: track.id,
+                    type: EntityType.track,
+                    name: track.name,
+                    images: track.album.images,
+                    artists: track.artists.map(({ id, name }) => {
+                      return { id, name };
+                    }),
+                  };
+                }),
+              )
+          : Promise.resolve([]),
+        artists.length > 0
+          ? this.spotifyApiService.spotifyWebApi
+              .getArtists(artists)
+              .then((response) => response.body.artists)
+              .then((artists) =>
+                artists.map((artist) => {
+                  return {
+                    id: artist.id,
+                    type: EntityType.artist,
+                    name: artist.name,
+                    images: artist.images,
+                  };
+                }),
+              )
+          : Promise.resolve([]),
+      ]);
+      const itemsArray = [...albumsRes, ...tracksRes, ...artistsRes];
+      const sortingItem = orderedItems.map(({ id }) => id);
+      itemsArray.sort(function (a, b) {
+        return sortingItem.indexOf(a.id) - sortingItem.indexOf(b.id);
+      });
+      return itemsArray;
+    } catch (error) {
+      throw new BadGatewayException();
+    }
   }
 
   async displayPlayHistory(user: any): Promise<Track[]> {
