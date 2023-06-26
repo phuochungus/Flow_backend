@@ -34,7 +34,7 @@ export class ArtistsService {
 
   async getTypicalArtists(): Promise<SimplifiedArtistWithImages[]> {
     const PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
-    const artists = await this.spotifyApiService.getAlbumArtists(PLAYLIST_ID);
+    const artists = await this.spotifyApiService.getPlaylistArtists(PLAYLIST_ID);
     return artists.map((e) => {
       return {
         id: e.id,
