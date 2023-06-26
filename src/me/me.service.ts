@@ -63,6 +63,7 @@ export class MeService {
 
   async displaySearchHistory(user: any): Promise<SimplifiedItem[]> {
     const orderedItems: recentlySearchItem[] = user.recentlySearch;
+    let itemsArray = [];
     const artists: string[] = [];
     const albums: string[] = [];
     const tracks: string[] = [];
@@ -137,7 +138,7 @@ export class MeService {
               )
           : Promise.resolve([]),
       ]);
-      const itemsArray = [...albumsRes, ...tracksRes, ...artistsRes];
+      itemsArray = [...itemsArray, ...albumsRes, ...tracksRes, ...artistsRes];
       const sortingItem = orderedItems.map(({ id }) => id);
       itemsArray.sort(function (a, b) {
         return sortingItem.indexOf(a.id) - sortingItem.indexOf(b.id);
