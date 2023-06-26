@@ -27,7 +27,8 @@ export class MeService {
       user.recentlyPlayed.unshift(id);
       user.recentlyPlayed.pop();
     }
-    await user.save();
+    user.save();
+    return user.recentlyPlayed;
   }
 
   async addToSearchHistory(user: any, pushHistoryDto: PushHistoryDTO) {
@@ -43,18 +44,21 @@ export class MeService {
       user.recentlySearch.unshift(pushHistoryDto);
       user.recentlySearch.pop();
     }
-    await user.save();
+    user.save();
+    return user.recentlySearch;
   }
 
   async removeFromSearchHistory(user: any, id: string) {
     if (user.recentlySearch.length == 0) return;
     if (id == 'all') {
       user.recentlySearch = [];
-      await user.save();
+      user.save();
+      return user.recentlySearch;
     }
     const index = user.recentlySearch.findIndex((e) => e.id == id);
     user.recentlySearch = this.removeFromArray(user.recentlySearch, index);
-    await user.save();
+    user.save();
+    return user.recentlySearch;
   }
 
   async displaySearchHistory(user: any): Promise<SimplifiedItem[]> {
@@ -174,7 +178,6 @@ export class MeService {
       user.favourites,
       user.favourites.findIndex((e) => e == id),
     );
-
     await user.save();
   }
 
