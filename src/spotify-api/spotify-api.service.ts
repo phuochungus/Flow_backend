@@ -47,6 +47,90 @@ export class SpotifyApiService {
     });
   }
 
+  async getAlbums(ids: string[]): Promise<SpotifyApi.AlbumObjectFull[]> {
+    let queryIds = [];
+    let responseArray = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const cacheResult = await this.cacheManager.get(`album_${id}`);
+      if (cacheResult)
+        responseArray.push(cacheResult as SpotifyApi.AlbumObjectFull);
+      else queryIds.push(id);
+    }
+
+    let trackResponse;
+    if (queryIds.length > 0)
+      trackResponse = (await this.spotifyWebApi.getAlbums(queryIds)).body
+        .albums;
+    else trackResponse = [];
+
+    for (let i = 0; i < trackResponse.length; ++i) {
+      this.cacheManager.set(`album_${trackResponse[i].id}`, trackResponse[i]);
+    }
+
+    responseArray = [...responseArray, ...trackResponse];
+
+    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+    return responseArray;
+  }
+
+  async getArtists(ids: string[]): Promise<SpotifyApi.ArtistObjectFull[]> {
+    let queryIds = [];
+    let responseArray = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const cacheResult = await this.cacheManager.get(`artist_${id}`);
+      if (cacheResult)
+        responseArray.push(cacheResult as SpotifyApi.ArtistObjectFull);
+      else queryIds.push(id);
+    }
+
+    let trackResponse;
+    if (queryIds.length > 0)
+      trackResponse = (await this.spotifyWebApi.getArtists(queryIds)).body
+        .artists;
+    else trackResponse = [];
+
+    for (let i = 0; i < trackResponse.length; ++i) {
+      this.cacheManager.set(`artist_${trackResponse[i].id}`, trackResponse[i]);
+    }
+
+    responseArray = [...responseArray, ...trackResponse];
+
+    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+    return responseArray;
+  }
+
+  async getTracks(ids: string[]): Promise<SpotifyApi.TrackObjectFull[]> {
+    let queryIds = [];
+    let responseArray: SpotifyApi.TrackObjectFull[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const cacheResult = await this.cacheManager.get(`track_${id}`);
+      if (cacheResult)
+        responseArray.push(cacheResult as SpotifyApi.TrackObjectFull);
+      else queryIds.push(id);
+    }
+
+    let trackResponse;
+    if (queryIds.length > 0)
+      trackResponse = (await this.spotifyWebApi.getTracks(queryIds)).body
+        .tracks;
+    else trackResponse = [];
+
+    for (let i = 0; i < trackResponse.length; ++i) {
+      this.cacheManager.set(`track_${trackResponse[i].id}`, trackResponse[i]);
+    }
+
+    responseArray = [...responseArray, ...trackResponse];
+
+    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+    return responseArray;
+  }
+
   async searchInSpotify(
     queryString: string,
     page: number = 0,
