@@ -12,7 +12,10 @@ export class AlbumsService {
     private AlbumsModel: Model<Album>,
   ) {}
   async findOne(id: string) {
-    let albumDoc = await this.AlbumsModel.findOne({ id }).lean();
+    let albumDoc = await this.AlbumsModel.findOne(
+      { id },
+      { _id: false },
+    ).lean();
     if (albumDoc) {
       const { _id, ...rest } = albumDoc;
       return rest;
