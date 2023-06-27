@@ -13,7 +13,9 @@ export class LyricsService {
   ) {}
 
   async findOne(id: string) {
-    const trackLyrics = await this.trackLyricsModel.findOne({ trackId: id });
+    const trackLyrics = await this.trackLyricsModel
+      .findOne({ trackId: id }, { _id: false })
+      .lean();
     if (trackLyrics) {
       if (trackLyrics.lyrics) return trackLyrics.lyrics;
       throw new NotFoundException();
