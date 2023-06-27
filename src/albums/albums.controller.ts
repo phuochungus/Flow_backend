@@ -30,12 +30,12 @@ export class AlbumsController {
   @UseInterceptors(MarkUserFavouritesInterceptor)
   async findOne(@Param('id') id: string) {
     const albumInfo: Album | undefined = await this.cacheManager.get(
-      `/albums/album/${id}`,
+      `album_${id}`,
     );
     if (albumInfo) return albumInfo;
     else {
       const album = await this.albumsService.findOne(id);
-      this.cacheManager.set(`/albums/album/${id}`, album);
+      this.cacheManager.set(`album_${id}`, album);
       return album;
     }
   }
