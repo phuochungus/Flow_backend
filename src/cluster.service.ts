@@ -10,6 +10,7 @@ export class ClusterService {
   static clusterize(callback: Function): void {
     if (cluster.isPrimary) {
       console.log(`MASTER SERVER (${process.pid}) IS RUNNING `);
+      console.log(numCPUs);
 
       for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
