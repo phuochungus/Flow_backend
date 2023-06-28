@@ -13,7 +13,6 @@ import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.
 import { TracksModule } from './tracks/tracks.module';
 import { UsersModule } from './users/users.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
-import { ClusterService } from './cluster.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -78,5 +77,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT || 3000);
 }
-ClusterService.clusterize(bootstrap);
-// bootstrap();
+bootstrap();
