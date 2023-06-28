@@ -111,7 +111,6 @@ export class TracksController {
     throw new NotFoundException();
   }
 
-  @UseInterceptors(CacheInterceptor)
   @Get('/top50')
   @ApiOkResponse({
     type: [Track],
@@ -121,7 +120,6 @@ export class TracksController {
   }
 
   @Get('/explore')
-  @UseInterceptors(CacheInterceptor)
   @ApiOkResponse({
     type: [Track],
   })
