@@ -17,8 +17,8 @@ export class ClusterService {
       }
 
       cluster.on('exit', (worker, code, signal) => {
-        console.log(`worker ${worker.process.pid} died. Restarting`);
-        cluster.fork();
+        console.log(`worker ${worker.process.pid} died`);
+        // cluster.fork();
       });
     } else {
       console.log(`Cluster server started on ${process.pid}`);
