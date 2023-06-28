@@ -6,6 +6,8 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 export class LyricsController {
   constructor(private readonly lyricsService: LyricsService) {}
 
+
+  ///TODO: REMOVE interceptor, manually cache response with following order: cache -> database -> API
   @UseInterceptors(CacheInterceptor)
   @Get('/:id')
   findOne(@Param('id') id: string) {
