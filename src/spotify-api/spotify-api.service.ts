@@ -315,6 +315,9 @@ export class SpotifyApiService {
         }),
       };
     });
+    tracksResponse.forEach((track) => {
+      this.cacheManager.set(`track_${track.track.id}`, track.track);
+    });
 
     this.cacheManager.set(`playlist_${id}`, tracks);
     return tracks;
