@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BadGatewayException, HttpException, Injectable } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
@@ -136,7 +136,7 @@ export class MeService {
       });
       return itemsArray;
     } catch (error) {
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw new BadGatewayException();
     }
   }

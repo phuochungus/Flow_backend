@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -29,7 +30,7 @@ export default class JWTStrategy extends PassportStrategy(Strategy, 'jwt') {
         .select(['-password']);
     } catch (error) {
       if (error instanceof NotFoundException) throw new UnauthorizedException();
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw error;
     }
   }

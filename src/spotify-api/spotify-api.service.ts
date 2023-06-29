@@ -1,4 +1,10 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  HttpException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import { YoutubeApiService } from 'src/youtube-api/youtube-api.service';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
@@ -263,18 +269,13 @@ export class SpotifyApiService {
       this.cacheManager.set(`track_${id}`, track);
       return track;
     } catch (error) {
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
+      throw new BadGatewayException();
     }
   }
 
   async getLyric(spotifyId: string): Promise<Lyrics[] | null> {
     try {
-      const cachedLyrics = await this.cacheManager.get(`lyrics_${spotifyId}`);
-      if (cachedLyrics) {
-        if (cachedLyrics != 'null') return cachedLyrics as Lyrics[];
-        return null;
-      }
-
       const res = await this.httpService.axiosRef.get(
         'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
       );
@@ -284,11 +285,9 @@ export class SpotifyApiService {
         },
       );
 
-      this.cacheManager.set(`lyrics_${spotifyId}`, lyrics);
       return lyrics;
     } catch (error) {
       if (error.response.status == 404) {
-        this.cacheManager.set(`lyrics_${spotifyId}`, 'null');
         return null;
       }
       console.error(error);
@@ -445,7 +444,7 @@ export class SpotifyApiService {
         this.cacheManager.set(`artist_${artistId}`, 'null');
         return null;
       }
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw error;
     }
   }
