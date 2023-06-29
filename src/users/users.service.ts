@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  HttpException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     if (createUserDto.password)
@@ -30,7 +31,7 @@ export class UsersService {
     } catch (error) {
       if (error.code == 11000)
         throw new ConflictException('email or username already taken!');
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw error;
     }
   }

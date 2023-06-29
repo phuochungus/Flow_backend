@@ -2,6 +2,7 @@ import {
   Injectable,
   BadGatewayException,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import youtubedl from 'youtube-dl-exec';
@@ -42,7 +43,7 @@ export class TracksService {
       response.setHeader('Transfer-Encoding', 'chunked');
       file.pipe(response);
     } catch (error) {
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw new BadGatewayException();
     }
   }
@@ -113,7 +114,7 @@ export class TracksService {
             });
           });
       } catch (error) {
-        console.error(error);
+        if (!(error instanceof HttpException)) console.error(error);
         throw new BadGatewayException();
       }
     }
@@ -124,7 +125,7 @@ export class TracksService {
       return await this.spotifyApiService.findOneTrackWithFormat(id);
     } catch (error) {
       if (error.body.error.status == 400) throw new BadRequestException();
-      console.error(error);
+      if (!(error instanceof HttpException)) console.error(error);
       throw new BadGatewayException();
     }
   }
