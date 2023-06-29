@@ -44,6 +44,7 @@
     "cache-manager-redis-yet": "^4.1.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "compression": "^1.7.4",
     "crypto-js": "^4.1.1",
     "fuse.js": "^6.6.2",
     "iso8601-duration": "^2.1.1",
