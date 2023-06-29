@@ -13,9 +13,11 @@ import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.
 import { TracksModule } from './tracks/tracks.module';
 import { UsersModule } from './users/users.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(compression());
   app.enableCors();
   app.useGlobalPipes(
     new ValidationPipe({
