@@ -11,7 +11,7 @@ import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
-import { createClient } from '@supabase/supabase-js';
+import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import ytdl from 'ytdl-core';
 
 export interface ITracksService {
@@ -24,15 +24,11 @@ export class TracksService implements ITracksService {
   constructor(
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
+    private readonly supabaseClient: SupabaseClient,
   ) {}
 
-  private supabase = createClient(
-    process.env.SUPABASE_PROJECT_URL!,
-    process.env.SUPABASE_API_KEY!,
-  );
-
   async getAudioContent(spotifyId: string, response: Response) {
-    const track = await this.spotifyApiService.findOneTrack(spotifyId);
+    const track = await this.findOneTrack(spotifyId);
     const youtubeId =
       await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
     try {
@@ -61,7 +57,7 @@ export class TracksService implements ITracksService {
   }
 
   private async fileExistInBucket(filename: string): Promise<boolean> {
-    const { data, error } = await this.supabase.storage.from('tracks').list();
+    const { data, error } = await this.supabaseClient.storage.from('tracks').list();
     if (error) return false;
 
     for (let file of data) {
@@ -73,7 +69,7 @@ export class TracksService implements ITracksService {
 
   async playExperiment(spotifyId: string, response: Response) {
     if (await this.fileExistInBucket(spotifyId)) {
-      const { data, error } = await this.supabase.storage
+      const { data, error } = await this.supabaseClient.storage
         .from('tracks')
         .createSignedUrl(spotifyId, 600);
       if (error) throw new BadGatewayException();
@@ -106,7 +102,7 @@ export class TracksService implements ITracksService {
               join(process.cwd(), 'audio', spotifyId + '.opus'),
             );
             // console.log(`save to ${join(process.cwd(), spotifyId + '.opus')}`);
-            this.supabase.storage
+            this.supabaseClient.storage
               .from('tracks')
               .upload(spotifyId, file, { contentType: 'audio/ogg' });
             response.setHeader('Content-Type', 'audio/ogg');
