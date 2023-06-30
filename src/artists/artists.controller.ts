@@ -42,7 +42,7 @@ export class ArtistsController {
     );
     if (artistsInfo) return artistsInfo;
     else {
-      const res = await this.artistsService.getArtistInfo(artistId);
+      const res = await this.artistsService.findOne(artistId);
       this.cacheManager.set(`/artists/artist/${artistId}`, res);
       return res;
     }
@@ -55,7 +55,7 @@ export class ArtistsController {
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
   async getArtistInfoV2(@Param('id') artistId: string) {
-    const res = await this.artistsService.getArtistInfoV2(artistId);
+    const res = await this.artistsService.findOne(artistId);
     if (res) return res;
     throw new NotFoundException('Artist not found');
   }

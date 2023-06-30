@@ -1,5 +1,4 @@
 import { BadGatewayException, HttpException, Injectable } from '@nestjs/common';
-import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
 import { SimplifiedAlbum } from 'src/albums/entities/album-simplofy.entity';
@@ -7,6 +6,9 @@ import { PushHistoryDTO } from './dto/PushHistory.dto';
 import { SimplifiedTrack } from 'src/tracks/entities/simplified-track.dto';
 import { Track } from 'src/tracks/entities/track.entity';
 import { EntityType } from '../albums/schemas/album.schema';
+import { TracksService } from '../tracks/tracks.service';
+import { ArtistsService } from '../artists/artists.service';
+import { AlbumsService } from '../albums/albums.service';
 
 export type SimplifiedItem =
   | SimplifiedArtistWithImages
@@ -15,7 +17,11 @@ export type SimplifiedItem =
 
 @Injectable()
 export class MeService {
-  constructor(private readonly spotifyApiService: SpotifyApiService) {}
+  constructor(
+    private readonly tracksService: TracksService,
+    private readonly albumsService: AlbumsService,
+    private readonly artistsService: ArtistsService,
+  ) {}
 
   async addToPlayHistory(user: any, id: string) {
     let array: string[] = user.recentlyPlayed;
@@ -87,7 +93,7 @@ export class MeService {
     try {
       const [albumsRes, tracksRes, artistsRes] = await Promise.all([
         albums.length > 0
-          ? this.spotifyApiService.getAlbums(albums).then((albums) =>
+          ? this.albumsService.findMany(albums).then((albums) =>
               albums.map((album) => {
                 return {
                   id: album.id,
@@ -102,7 +108,7 @@ export class MeService {
             )
           : Promise.resolve([]),
         tracks.length > 0
-          ? this.spotifyApiService.getTracks(tracks).then((tracks) =>
+          ? this.tracksService.getTracks(tracks).then((tracks) =>
               tracks.map((track) => {
                 return {
                   id: track.id,
@@ -117,7 +123,7 @@ export class MeService {
             )
           : Promise.resolve([]),
         artists.length > 0
-          ? this.spotifyApiService.getArtists(artists).then((artists) =>
+          ? this.artistsService.findManyRaw(artists).then((artists) =>
               artists.map((artist) => {
                 return {
                   id: artist.id,
@@ -144,7 +150,7 @@ export class MeService {
   async displayPlayHistory(user: any): Promise<Track[]> {
     const ids: string[] = user.recentlyPlayed;
     const promises = ids.map(async (e) => {
-      return await this.spotifyApiService.findOneTrackWithFormat(e);
+      return await this.tracksService.findOneTrackWithFormat(e);
     });
     let result: {
       id: string;

@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
 import { SpotifyApiService } from './spotify-api.service';
-import { YoutubeApiModule } from 'src/youtube-api/youtube-api.module';
 import { SpotifyToYoutubeModule } from 'src/spotify-to-youtube/spotify-to-youtube.module';
-import { HttpModule } from '@nestjs/axios';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 @Module({
-  imports: [YoutubeApiModule, SpotifyToYoutubeModule, HttpModule],
-  providers: [SpotifyApiService],
+  imports: [SpotifyToYoutubeModule],
+  providers: [
+    SpotifyApiService,
+    {
+      provide: SpotifyWebApi,
+      useValue: new SpotifyWebApi({
+        clientId: process.env.SPOTIFY_CLIENT_ID,
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+      }),
+    },
+  ],
   exports: [SpotifyApiService],
 })
 export class SpotifyApiModule {}

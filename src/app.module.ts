@@ -12,12 +12,13 @@ import { ArtistsModule } from './artists/artists.module';
 import { SearchModule } from './search/search.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
 import { SpotifyToYoutubeModule } from './spotify-to-youtube/spotify-to-youtube.module';
-import { SeminarModule } from './seminar/seminar.module';
 import { LyricsModule } from './lyrics/lyrics.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-yet';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { YoutubeMusicService } from './youtube-music/youtube-music.service';
+import { YoutubeMusicModule } from './youtube-music/youtube-music.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         store: await redisStore({
           url:
             config.get<string>('REDIS_INTERNAL_URL') ||
-            config.get<string>('REDIS_URL') || "redis://localhost:6379",
+            config.get<string>('REDIS_URL') ||
+            'redis://localhost:6379',
           ttl: 12 * 60 * 60 * 1000,
         }),
       }),
@@ -48,10 +50,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     SearchModule,
     YoutubeApiModule,
     SpotifyToYoutubeModule,
-    SeminarModule,
     LyricsModule,
+    YoutubeMusicModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, YoutubeMusicService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import Fuse from 'fuse.js';
 import parseUrl from 'parse-url';
 import SpotifyToYoutubeMusic from 'spotify-to-ytmusic';
@@ -7,6 +12,11 @@ import { toSeconds, parse } from 'iso8601-duration';
 import { InjectModel } from '@nestjs/mongoose';
 import { SpotifyToYoutube } from './schemas/spotify-to-youtube.schema';
 import { Model } from 'mongoose';
+import {
+  ISearchMusic,
+  ISearchMusicToken,
+  YoutubeMusicService,
+} from '../youtube-music/youtube-music.service';
 
 export type YoutubeVideo = {
   youtubeId: string;
@@ -15,18 +25,19 @@ export type YoutubeVideo = {
   album: string;
   duration: { totalSeconds: number };
 };
+
 @Injectable()
 export class SpotifyToYoutubeService implements OnModuleInit {
   constructor(
     @InjectModel(SpotifyToYoutube.name)
-    private spotifyToYoutubeModel: Model<SpotifyToYoutube>,
-    private youtubeApiService: YoutubeApiService,
+    private readonly spotifyToYoutubeModel: Model<SpotifyToYoutube>,
+    private readonly youtubeApiService: YoutubeApiService,
+    @Inject(ISearchMusicToken)
+    private readonly youtubeMusicService: ISearchMusic,
   ) {}
-  private searchMusics: (query: string) => Promise<any[]>;
-  private spotifyToYoutubeMusic: any;
+  private spotifyToYoutubeMusic;
 
   async onModuleInit() {
-    this.searchMusics = (await import('node-youtube-music')).searchMusics;
     this.spotifyToYoutubeMusic = await SpotifyToYoutubeMusic({
       clientID: process.env.SPOTIFY_CLIENT_ID,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -73,9 +84,10 @@ export class SpotifyToYoutubeService implements OnModuleInit {
       }
     }
 
-    const searchResults: YoutubeVideo[] = await this.searchMusics(
-      spotifyTrack.name + spotifyTrack.artists.map((e) => e.name),
-    );
+    const searchResults: YoutubeVideo[] =
+      await this.youtubeMusicService.searchMusics(
+        spotifyTrack.name + spotifyTrack.artists.map((e) => e.name),
+      );
 
     if (searchResults.length == 0) throw new NotFoundException();
     let filterResultByTitle = this.filterResults(

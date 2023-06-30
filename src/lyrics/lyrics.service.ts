@@ -7,17 +7,18 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TrackLyrics } from './schemas/lyric.schema';
-import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { HttpService } from '@nestjs/axios';
+import { Lyrics } from '../tracks/entities/lyrics.entity';
 
 @Injectable()
 export class LyricsService {
   constructor(
     @InjectModel(TrackLyrics.name)
     private trackLyricsModel: Model<TrackLyrics>,
-    private spotifyApi: SpotifyApiService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly httpService: HttpService,
   ) {}
 
   async findOne(id: string) {
@@ -36,7 +37,7 @@ export class LyricsService {
     }
 
     try {
-      const lyrics = await this.spotifyApi.getLyric(id);
+      const lyrics = await this.getLyric(id);
       const createdDocument = new this.trackLyricsModel({
         trackId: id,
         lyrics,
@@ -52,6 +53,27 @@ export class LyricsService {
       }
     } catch (error) {
       if (!(error instanceof HttpException)) console.error(error);
+      throw error;
+    }
+  }
+
+  async getLyric(spotifyId: string): Promise<Lyrics[] | null> {
+    try {
+      const res = await this.httpService.axiosRef.get(
+        'https://spotify-lyric-api.herokuapp.com/?trackid=' + spotifyId,
+      );
+      const lyrics = res.data.lines.map(
+        (e: { startTimeMs: string; words: string }) => {
+          return { startTimeMs: parseInt(e.startTimeMs), words: e.words };
+        },
+      );
+
+      return lyrics;
+    } catch (error) {
+      if (error.response.status == 404) {
+        return null;
+      }
+      console.error(error);
       throw error;
     }
   }
