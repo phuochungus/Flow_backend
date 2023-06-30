@@ -40,7 +40,7 @@ export class TracksController {
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
   async findOne(@Param('id') id: string): Promise<Track> {
-    return await this.tracksService.getInfo(id);
+    return await this.tracksService.getMetadata(id);
   }
 
   @Get('/play/:id')
@@ -61,7 +61,7 @@ export class TracksController {
     },
   })
   async playTrack(@Res() res: Response, @Param('id') id: string) {
-    return await this.tracksService.play(id, res);
+    return await this.tracksService.getAudioContent(id, res);
   }
 
   @Get('/debug/play/:id')

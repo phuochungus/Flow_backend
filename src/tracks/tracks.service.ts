@@ -14,8 +14,13 @@ import { Track } from './entities/track.entity';
 import { createClient } from '@supabase/supabase-js';
 import ytdl from 'ytdl-core';
 
+export interface ITracksService {
+  getMetadata(id: string): Promise<Track>;
+  getAudioContent(id: string, response: Response);
+}
+
 @Injectable()
-export class TracksService {
+export class TracksService implements ITracksService {
   constructor(
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
@@ -26,12 +31,12 @@ export class TracksService {
     process.env.SUPABASE_API_KEY!,
   );
 
-  async play(spotifyId: string, response: Response) {
+  async getAudioContent(spotifyId: string, response: Response) {
     const track = await this.spotifyApiService.findOneTrack(spotifyId);
-    const youtubeURL =
-      await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
+    const youtubeId =
+      await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
     try {
-      await youtubedl(youtubeURL, {
+      await youtubedl(youtubeId, {
         noCheckCertificates: true,
         noMtime: true,
         extractAudio: true,
@@ -51,7 +56,7 @@ export class TracksService {
   async debugPlay(spotifyId: string) {
     const track = await this.spotifyApiService.findOneTrack(spotifyId);
     const youtubeURL =
-      await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
+      await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
     return youtubeURL;
   }
 
@@ -76,7 +81,7 @@ export class TracksService {
     } else {
       const track = await this.spotifyApiService.findOneTrack(spotifyId);
       const youtubeURL =
-        await this.spotifyToYoutubeService.getYoutubeIdFromSpotify(track);
+        await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
       // console.log(youtubeURL);
       try {
         ytdl(youtubeURL, {
@@ -120,7 +125,7 @@ export class TracksService {
     }
   }
 
-  async getInfo(id: string): Promise<Track> {
+  async getMetadata(id: string): Promise<Track> {
     try {
       return await this.spotifyApiService.findOneTrackWithFormat(id);
     } catch (error) {
