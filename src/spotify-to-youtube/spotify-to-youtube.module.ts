@@ -5,6 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import SpotifyToYoutubeSchema, {
   SpotifyToYoutube,
 } from './schemas/spotify-to-youtube.schema';
+import {
+  YoutubeMusicService,
+  ISearchMusicToken,
+} from '../youtube-music/youtube-music.service';
 
 @Module({
   imports: [
@@ -13,7 +17,14 @@ import SpotifyToYoutubeSchema, {
       { name: SpotifyToYoutube.name, schema: SpotifyToYoutubeSchema },
     ]),
   ],
-  providers: [SpotifyToYoutubeService],
+  providers: [
+    SpotifyToYoutubeService,
+    YoutubeMusicService,
+    {
+      provide: ISearchMusicToken,
+      useExisting: YoutubeMusicService,
+    },
+  ],
   exports: [SpotifyToYoutubeService],
 })
 export class SpotifyToYoutubeModule {}

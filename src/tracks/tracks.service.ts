@@ -3,16 +3,19 @@ import {
   BadGatewayException,
   BadRequestException,
   HttpException,
+  Inject,
 } from '@nestjs/common';
 import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
-import youtubedl from 'youtube-dl-exec';
-import { createReadStream, createWriteStream, readFileSync, unlink } from 'fs';
+import { createWriteStream, readFileSync, unlink } from 'fs';
 import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import ytdl from 'ytdl-core';
+import { EntityType } from '../albums/schemas/album.schema';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 export interface ITracksService {
   getMetadata(id: string): Promise<Track>;
@@ -25,51 +28,11 @@ export class TracksService implements ITracksService {
     private readonly spotifyApiService: SpotifyApiService,
     private readonly spotifyToYoutubeService: SpotifyToYoutubeService,
     private readonly supabaseClient: SupabaseClient,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   async getAudioContent(spotifyId: string, response: Response) {
-    const track = await this.spotifyApiService.findOneTrack(spotifyId);
-    const youtubeId =
-      await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
-    try {
-      await youtubedl(youtubeId, {
-        noCheckCertificates: true,
-        noMtime: true,
-        extractAudio: true,
-        output: join(process.cwd(), 'audio', 'audio'),
-      });
-
-      const file = createReadStream(join(process.cwd(), 'audio', 'audio.opus'));
-      response.setHeader('Content-Type', 'audio/ogg');
-      response.setHeader('Transfer-Encoding', 'chunked');
-      file.pipe(response);
-    } catch (error) {
-      if (!(error instanceof HttpException)) console.error(error);
-      throw new BadGatewayException();
-    }
-  }
-
-  async debugPlay(spotifyId: string) {
-    const track = await this.spotifyApiService.findOneTrack(spotifyId);
-    const youtubeURL =
-      await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
-    return youtubeURL;
-  }
-
-  private async fileExistInBucket(filename: string): Promise<boolean> {
-    const { data, error } = await this.supabaseClient.storage
-      .from('tracks')
-      .list();
-    if (error) return false;
-
-    for (let file of data) {
-      if (file.name == filename) return true;
-    }
-
-    return false;
-  }
-
-  async playExperiment(spotifyId: string, response: Response) {
     if (await this.fileExistInBucket(spotifyId)) {
       const { data, error } = await this.supabaseClient.storage
         .from('tracks')
@@ -77,12 +40,11 @@ export class TracksService implements ITracksService {
       if (error) throw new BadGatewayException();
       response.redirect(data!.signedUrl);
     } else {
-      const track = await this.spotifyApiService.findOneTrack(spotifyId);
-      const youtubeURL =
+      const track = await this.findOneTrack(spotifyId);
+      const youtubeId =
         await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
-      // console.log(youtubeURL);
       try {
-        ytdl(youtubeURL, {
+        ytdl(youtubeId, {
           requestOptions: {
             headers: {
               cookie: process.env.YOUTUBE_COOKIES,
@@ -123,9 +85,22 @@ export class TracksService implements ITracksService {
     }
   }
 
+  private async fileExistInBucket(filename: string): Promise<boolean> {
+    const { data, error } = await this.supabaseClient.storage
+      .from('tracks')
+      .list();
+    if (error) return false;
+
+    for (let file of data) {
+      if (file.name == filename) return true;
+    }
+
+    return false;
+  }
+
   async getMetadata(id: string): Promise<Track> {
     try {
-      return await this.spotifyApiService.findOneTrackWithFormat(id);
+      return await this.findOneTrackWithFormat(id);
     } catch (error) {
       if (error.body.error.status == 400) throw new BadRequestException();
       if (!(error instanceof HttpException)) console.error(error);
@@ -133,9 +108,94 @@ export class TracksService implements ITracksService {
     }
   }
 
+  async findOneTrackWithFormat(id: string): Promise<Track> {
+    const track = await this.findOneTrack(id);
+    return {
+      id: track.id,
+      name: track.name,
+      type: EntityType.track,
+      duration_ms: track.duration_ms,
+      images: track.album.images,
+      artists: track.artists.map((e) => {
+        return { id: e.id, name: e.name };
+      }),
+    };
+  }
+
+  async findOneTrack(id: string): Promise<SpotifyApi.SingleTrackResponse> {
+    const cachedResult = await this.cacheManager.get(`track_${id}`);
+    if (cachedResult) return cachedResult as SpotifyApi.SingleTrackResponse;
+    try {
+      const track = (await this.spotifyApiService.spotifyWebApi.getTrack(id))
+        .body;
+      this.cacheManager.set(`track_${id}`, track);
+      return track;
+    } catch (error) {
+      if (!(error instanceof HttpException)) console.error(error);
+      throw new BadGatewayException();
+    }
+  }
+
   async getTop50TracksVietnam(): Promise<Track[]> {
     const TOP50_PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
-    return await this.spotifyApiService.getPlaylistTracks(TOP50_PLAYLIST_ID);
+    return await this.getPlaylistTracks(TOP50_PLAYLIST_ID);
+  }
+
+  async getPlaylistTracks(id: string): Promise<Track[]> {
+    const cachedResult = await this.cacheManager.get(`playlist_${id}`);
+    if (cachedResult) return cachedResult as Track[];
+
+    let tracksResponse = (
+      await this.spotifyApiService.spotifyWebApi.getPlaylistTracks(id)
+    ).body.items;
+    tracksResponse = tracksResponse.filter((e) => e && e.track);
+    const tracks = tracksResponse.map((e) => {
+      return {
+        id: e!.track!.id,
+        name: e!.track!.name,
+        type: EntityType.track,
+        images: e!.track!.album.images,
+        duration_ms: e!.track!.duration_ms,
+        artists: e!.track!.artists.map((e) => {
+          return { id: e.id, name: e.name };
+        }),
+      };
+    });
+    tracksResponse.forEach((track) => {
+      this.cacheManager.set(`track_${track.track.id}`, track.track);
+    });
+
+    this.cacheManager.set(`playlist_${id}`, tracks);
+    return tracks;
+  }
+
+  async getTracks(ids: string[]): Promise<SpotifyApi.TrackObjectFull[]> {
+    let queryIds = [];
+    let responseArray: SpotifyApi.TrackObjectFull[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const cacheResult = await this.cacheManager.get(`track_${id}`);
+      if (cacheResult)
+        responseArray.push(cacheResult as SpotifyApi.TrackObjectFull);
+      else queryIds.push(id);
+    }
+
+    let trackResponse;
+    if (queryIds.length > 0)
+      trackResponse = (
+        await this.spotifyApiService.spotifyWebApi.getTracks(queryIds)
+      ).body.tracks;
+    else trackResponse = [];
+
+    for (let i = 0; i < trackResponse.length; ++i) {
+      this.cacheManager.set(`track_${trackResponse[i].id}`, trackResponse[i]);
+    }
+
+    responseArray = [...responseArray, ...trackResponse];
+
+    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+    return responseArray;
   }
 
   async getExploreTrack(genreName: string) {
@@ -212,6 +272,6 @@ export class TracksService implements ITracksService {
         return;
     }
 
-    return await this.spotifyApiService.getPlaylistTracks(playlistId);
+    return await this.getPlaylistTracks(playlistId);
   }
 }

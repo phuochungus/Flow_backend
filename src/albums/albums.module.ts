@@ -12,5 +12,6 @@ import { Album, AlbumSchema } from './schemas/album.schema';
   ],
   controllers: [AlbumsController],
   providers: [AlbumsService],
+  exports: [AlbumsService],
 })
 export class AlbumsModule {}
