@@ -28,7 +28,7 @@ export class TracksService implements ITracksService {
   ) {}
 
   async getAudioContent(spotifyId: string, response: Response) {
-    const track = await this.findOneTrack(spotifyId);
+    const track = await this.spotifyApiService.findOneTrack(spotifyId);
     const youtubeId =
       await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(track);
     try {
@@ -57,7 +57,9 @@ export class TracksService implements ITracksService {
   }
 
   private async fileExistInBucket(filename: string): Promise<boolean> {
-    const { data, error } = await this.supabaseClient.storage.from('tracks').list();
+    const { data, error } = await this.supabaseClient.storage
+      .from('tracks')
+      .list();
     if (error) return false;
 
     for (let file of data) {
