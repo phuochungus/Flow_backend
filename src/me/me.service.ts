@@ -1,4 +1,9 @@
-import { BadGatewayException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  HttpException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
 import { SimplifiedAlbum } from 'src/albums/entities/album-simplofy.entity';
@@ -7,8 +12,14 @@ import { SimplifiedTrack } from 'src/tracks/entities/simplified-track.dto';
 import { Track } from 'src/tracks/entities/track.entity';
 import { EntityType } from '../albums/schemas/album.schema';
 import { TracksService } from '../tracks/tracks.service';
-import { ArtistsService } from '../artists/artists.service';
-import { AlbumsService } from '../albums/albums.service';
+import {
+  ArtistRepository,
+  SpotifyArtistRepository,
+} from '../artists/artists.service';
+import {
+  AlbumRepository,
+  SpotifyAlbumRepository,
+} from '../albums/albums.service';
 
 export type SimplifiedItem =
   | SimplifiedArtistWithImages
@@ -19,8 +30,8 @@ export type SimplifiedItem =
 export class MeService {
   constructor(
     private readonly tracksService: TracksService,
-    private readonly albumsService: AlbumsService,
-    private readonly artistsService: ArtistsService,
+    private readonly albumsService: AlbumRepository,
+    private readonly artistsService: ArtistRepository,
   ) {}
 
   async addToPlayHistory(user: any, id: string) {

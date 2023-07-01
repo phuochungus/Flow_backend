@@ -1,17 +1,16 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-
-export const ISearchMusicToken = Symbol('ISearchMusic');
-export interface ISearchMusic {
-  searchMusics(query: string): Promise<any[]>;
+export abstract class SearchMusicService {
+  abstract searchMusicContent(query: string): Promise<any>;
 }
 
 @Injectable()
-export class YoutubeMusicService implements ISearchMusic, OnModuleInit {
+export class YoutubeMusicService implements SearchMusicService, OnModuleInit {
   private youtubeMusicApi;
   async onModuleInit() {
     this.youtubeMusicApi = await import('node-youtube-music');
   }
-  searchMusics(query: string): Promise<any[]> {
+
+  searchMusicContent(query: string): Promise<any> {
     return this.youtubeMusicApi.searchMusics(query);
   }
 }

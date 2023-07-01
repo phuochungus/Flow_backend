@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LyricsController } from './lyrics.controller';
-import { LyricsService } from './lyrics.service';
+import { MusixmatchLyricsRepository } from './lyrics.service';
 
 describe('LyricsController', () => {
   let controller: LyricsController;
@@ -8,7 +8,7 @@ describe('LyricsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LyricsController],
-      providers: [LyricsService],
+      providers: [MusixmatchLyricsRepository],
     }).compile();
 
     controller = module.get<LyricsController>(LyricsController);

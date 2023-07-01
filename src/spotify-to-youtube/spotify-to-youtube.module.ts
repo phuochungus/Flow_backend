@@ -7,8 +7,9 @@ import SpotifyToYoutubeSchema, {
 } from './schemas/spotify-to-youtube.schema';
 import {
   YoutubeMusicService,
-  ISearchMusicToken,
+  SearchMusicService,
 } from '../youtube-music/youtube-music.service';
+import { SpotifyApiModule } from '../spotify-api/spotify-api.module';
 
 @Module({
   imports: [
@@ -16,12 +17,13 @@ import {
     MongooseModule.forFeature([
       { name: SpotifyToYoutube.name, schema: SpotifyToYoutubeSchema },
     ]),
+    SpotifyApiModule,
   ],
   providers: [
     SpotifyToYoutubeService,
     YoutubeMusicService,
     {
-      provide: ISearchMusicToken,
+      provide: SearchMusicService,
       useExisting: YoutubeMusicService,
     },
   ],

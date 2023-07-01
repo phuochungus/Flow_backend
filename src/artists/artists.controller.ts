@@ -7,7 +7,7 @@ import {
   Inject,
   NotFoundException,
 } from '@nestjs/common';
-import { ArtistsService } from './artists.service';
+import { ArtistRepository } from './artists.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import {
   ApiBearerAuth,
@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ArtistWithIsFavourite } from './entities/artist-with-isFavourite.entity';
-import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
+import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.interceptor';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Artist } from './entities/artist.entity';
@@ -25,7 +25,7 @@ import { Artist } from './entities/artist.entity';
 @Controller('artists')
 export class ArtistsController {
   constructor(
-    private readonly artistsService: ArtistsService,
+    private readonly artistRepository: ArtistRepository,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
   ) {}
@@ -42,7 +42,7 @@ export class ArtistsController {
     );
     if (artistsInfo) return artistsInfo;
     else {
-      const res = await this.artistsService.findOne(artistId);
+      const res = await this.artistRepository.findOne(artistId);
       this.cacheManager.set(`/artists/artist/${artistId}`, res);
       return res;
     }
@@ -55,13 +55,13 @@ export class ArtistsController {
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
   async getArtistInfoV2(@Param('id') artistId: string) {
-    const res = await this.artistsService.findOne(artistId);
+    const res = await this.artistRepository.findOne(artistId);
     if (res) return res;
     throw new NotFoundException('Artist not found');
   }
 
   @Get('/typical_artists')
   async getTypicalArtists() {
-    return await this.artistsService.getTypicalArtists();
+    return await this.artistRepository.findTopArtists();
   }
 }
