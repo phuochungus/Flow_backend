@@ -13,10 +13,10 @@ export class MarkUserFavouritesInterceptor implements NestInterceptor {
     const favouriteIds: string[] = req.user.favourites;
     return next
       .handle()
-      .pipe(map((data) => this.markFavouriteProduct(favouriteIds, data)));
+      .pipe(map((data) => this.markFavourites(favouriteIds, data)));
   }
 
-  private markFavouriteProduct(favouriteIds: string[], data: any) {
+  private markFavourites(favouriteIds: string[], data: any) {
     if (data.id) {
       if (favouriteIds.includes(data.id)) data.isFavourite = true;
       else data.isFavourite = false;
