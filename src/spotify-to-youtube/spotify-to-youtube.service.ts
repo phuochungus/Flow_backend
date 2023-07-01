@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import Fuse from 'fuse.js';
 import parseUrl from 'parse-url';
 import SpotifyToYoutubeMusic from 'spotify-to-ytmusic';
@@ -11,8 +7,11 @@ import { toSeconds, parse } from 'iso8601-duration';
 import { InjectModel } from '@nestjs/mongoose';
 import { SpotifyToYoutube } from './schemas/spotify-to-youtube.schema';
 import { Model } from 'mongoose';
-import { SearchMusicService } from '../youtube-music/youtube-music.service';
 import { SpotifyApiService } from '../spotify-api/spotify-api.service';
+import {
+  SearchMusicService,
+  SpotifyToYoutubeSearcherService,
+} from '../abstract/abstract';
 
 export type YoutubeVideo = {
   youtubeId: string;
@@ -21,13 +20,6 @@ export type YoutubeVideo = {
   album: string;
   duration: { totalSeconds: number };
 };
-
-export abstract class SpotifyToYoutubeSearcherService {
-  abstract convertSpotifyIdToYoutubeId(id: string): Promise<string>;
-  abstract converSpotifyContentToYoutubeId(
-    content: SpotifyApi.SingleTrackResponse,
-  ): Promise<string>;
-}
 
 @Injectable()
 export class SpotifyToYoutubeService

@@ -1,9 +1,4 @@
-import {
-  BadGatewayException,
-  HttpException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { BadGatewayException, HttpException, Injectable } from '@nestjs/common';
 import { recentlySearchItem } from 'src/users/schemas/user.schema';
 import { SimplifiedArtistWithImages } from 'src/artists/entities/simplified-artist-with-images.entity';
 import { SimplifiedAlbum } from 'src/albums/entities/album-simplofy.entity';
@@ -11,15 +6,12 @@ import { PushHistoryDTO } from './dto/PushHistory.dto';
 import { SimplifiedTrack } from 'src/tracks/entities/simplified-track.dto';
 import { Track } from 'src/tracks/entities/track.entity';
 import { EntityType } from '../albums/schemas/album.schema';
-import { TracksService } from '../tracks/tracks.service';
-import {
-  ArtistRepository,
-  SpotifyArtistRepository,
-} from '../artists/artists.service';
+import { SpotifyTrackRepository } from '../tracks/tracks.service';
 import {
   AlbumRepository,
-  SpotifyAlbumRepository,
-} from '../albums/albums.service';
+  ArtistRepository,
+  TrackRepository,
+} from '../abstract/abstract';
 
 export type SimplifiedItem =
   | SimplifiedArtistWithImages
@@ -29,7 +21,7 @@ export type SimplifiedItem =
 @Injectable()
 export class MeService {
   constructor(
-    private readonly tracksService: TracksService,
+    private readonly tracksService: TrackRepository,
     private readonly albumsService: AlbumRepository,
     private readonly artistsService: ArtistRepository,
   ) {}
@@ -119,13 +111,13 @@ export class MeService {
             )
           : Promise.resolve([]),
         tracks.length > 0
-          ? this.tracksService.getTracks(tracks).then((tracks) =>
+          ? this.tracksService.getManyMetadata(tracks).then((tracks) =>
               tracks.map((track) => {
                 return {
                   id: track.id,
                   type: EntityType.track,
                   name: track.name,
-                  images: track.album.images,
+                  images: track.images,
                   artists: track.artists.map(({ id, name }) => {
                     return { id, name };
                   }),
@@ -161,7 +153,7 @@ export class MeService {
   async displayPlayHistory(user: any): Promise<Track[]> {
     const ids: string[] = user.recentlyPlayed;
     const promises = ids.map(async (e) => {
-      return await this.tracksService.findOneTrackWithFormat(e);
+      return await this.tracksService.getMetadata(e);
     });
     let result: {
       id: string;

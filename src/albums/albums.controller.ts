@@ -6,13 +6,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AlbumRepository, SpotifyAlbumRepository } from './albums.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.interceptor';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Album } from './schemas/album.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { AlbumRepository } from '../abstract/abstract';
 
 @ApiTags('albums')
 @Controller('albums')

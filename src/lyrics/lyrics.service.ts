@@ -11,10 +11,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
 import { Lyrics } from '../tracks/entities/lyrics.entity';
-
-export abstract class LyricsRepository {
-  abstract findOne(id: string): Promise<Lyrics[]>;
-}
+import { LyricsRepository } from '../abstract/abstract';
 
 @Injectable()
 export class MusixmatchLyricsRepository implements LyricsRepository {

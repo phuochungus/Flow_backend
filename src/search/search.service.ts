@@ -8,15 +8,12 @@ import { EntityType } from '../albums/schemas/album.schema';
 import { SimplifiedArtistWithPopulary } from '../artists/entities/simplified-artist-for-search.entity';
 import { SimplifedTrackWithPopularity } from '../tracks/entities/simplify-track-for-search.dto';
 import { SpotifyApiService } from '../spotify-api/spotify-api.service';
+import { SearchService } from '../abstract/abstract';
 
 export type SimplifiedEntity =
   | SimplifedTrackWithPopularity
   | SimplifiedAlbumWithPopularity
   | SimplifiedArtistWithPopulary;
-
-export abstract class SearchService {
-  abstract search(query: string, page: number): Promise<SearchResult>;
-}
 
 @Injectable()
 export class SpotifySearchService implements SearchService {
@@ -26,10 +23,7 @@ export class SpotifySearchService implements SearchService {
     private readonly spotifyApiService: SpotifyApiService,
   ) {}
 
-  async search(
-    queryString: string,
-    page: number = 0,
-  ): Promise<SearchResult> {
+  async search(queryString: string, page: number = 0): Promise<SearchResult> {
     const cachedResult = await this.cacheManager.get(
       `search_page_${page}_query_${queryString}`,
     );

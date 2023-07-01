@@ -6,7 +6,6 @@ import {
   Inject,
 } from '@nestjs/common';
 import { createWriteStream, readFileSync, unlink } from 'fs';
-import { Response } from 'express';
 import { SpotifyToYoutubeService } from 'src/spotify-to-youtube/spotify-to-youtube.service';
 import { join } from 'path';
 import { Track } from './entities/track.entity';
@@ -16,14 +15,11 @@ import { EntityType } from '../albums/schemas/album.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { SpotifyApiService } from '../spotify-api/spotify-api.service';
-
-export interface ITracksService {
-  getMetadata(id: string): Promise<Track>;
-  getAudioContent(id: string, response: Response);
-}
+import { TrackRepository } from '../abstract/abstract';
+import { Response } from 'express';
 
 @Injectable()
-export class TracksService implements ITracksService {
+export class SpotifyTrackRepository implements TrackRepository {
   constructor(
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
@@ -138,7 +134,7 @@ export class TracksService implements ITracksService {
     }
   }
 
-  async getTop50TracksVietnam(): Promise<Track[]> {
+  async getTop50(): Promise<Track[]> {
     const TOP50_PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
     return await this.getPlaylistTracks(TOP50_PLAYLIST_ID);
   }
@@ -158,8 +154,8 @@ export class TracksService implements ITracksService {
         type: EntityType.track,
         images: e!.track!.album.images,
         duration_ms: e!.track!.duration_ms,
-        artists: e!.track!.artists.map((e) => {
-          return { id: e.id, name: e.name };
+        artists: e!.track!.artists.map(({ id, name }) => {
+          return { id, name };
         }),
       };
     });
@@ -171,22 +167,32 @@ export class TracksService implements ITracksService {
     return tracks;
   }
 
-  async getTracks(ids: string[]): Promise<SpotifyApi.TrackObjectFull[]> {
+  async getManyMetadata(ids: string[]): Promise<Track[]> {
     let queryIds = [];
-    let responseArray: SpotifyApi.TrackObjectFull[] = [];
+    let responseArray: Track[] = [];
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
       const cacheResult = await this.cacheManager.get(`track_${id}`);
-      if (cacheResult)
-        responseArray.push(cacheResult as SpotifyApi.TrackObjectFull);
+      if (cacheResult) responseArray.push(cacheResult as Track);
       else queryIds.push(id);
     }
 
-    let trackResponse;
+    let trackResponse: Track[] = [];
     if (queryIds.length > 0)
       trackResponse = (
         await this.spotifyApiService.spotifyWebApi.getTracks(queryIds)
-      ).body.tracks;
+      ).body.tracks.map((track) => {
+        return {
+          id: track.id,
+          name: track.name,
+          type: EntityType.track,
+          images: track.album.images,
+          duration_ms: track.duration_ms,
+          artists: track.artists.map(({ id, name }) => {
+            return { id, name };
+          }),
+        };
+      });
     else trackResponse = [];
 
     for (let i = 0; i < trackResponse.length; ++i) {
@@ -200,7 +206,7 @@ export class TracksService implements ITracksService {
     return responseArray;
   }
 
-  async getExploreTrack(genreName: string) {
+  async getExploreTrack(genreName: string): Promise<Track[]> {
     let playlistId: string;
     switch (genreName) {
       case 'NhacViet':

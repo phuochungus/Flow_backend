@@ -7,7 +7,6 @@ import {
   Inject,
   NotFoundException,
 } from '@nestjs/common';
-import { ArtistRepository } from './artists.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import {
   ApiBearerAuth,
@@ -20,6 +19,7 @@ import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Artist } from './entities/artist.entity';
+import { ArtistRepository } from '../abstract/abstract';
 
 @ApiTags('artists')
 @Controller('artists')

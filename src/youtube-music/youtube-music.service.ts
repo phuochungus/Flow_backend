@@ -1,7 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-export abstract class SearchMusicService {
-  abstract searchMusicContent(query: string): Promise<any>;
-}
+import { SearchMusicService } from '../abstract/abstract';
 
 @Injectable()
 export class YoutubeMusicService implements SearchMusicService, OnModuleInit {
