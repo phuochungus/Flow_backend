@@ -1,10 +1,8 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import SpotifyWebApi from 'spotify-web-api-node';
 import _ from 'lodash';
+import { APIWrapper } from '../abstract/abstract';
 
-export abstract class APIWrapper {
-  abstract authorize(): void;
-}
 @Injectable()
 export class SpotifyApiService implements APIWrapper {
   constructor(public readonly spotifyWebApi: SpotifyWebApi) {

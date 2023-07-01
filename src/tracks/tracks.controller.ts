@@ -7,7 +7,6 @@ import {
   UseInterceptors,
   Query,
 } from '@nestjs/common';
-import { TracksService } from './tracks.service';
 import { Response } from 'express';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
 import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.interceptor';
@@ -20,11 +19,12 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { Track, TrackWithIsFavourite } from './entities/track.entity';
+import { TrackRepository } from '../abstract/abstract';
 
 @ApiTags('tracks')
 @Controller('tracks')
 export class TracksController {
-  constructor(private readonly tracksService: TracksService) {}
+  constructor(private readonly trackRepository: TrackRepository) {}
 
   @Get('/track/:id')
   @ApiBearerAuth()
@@ -33,7 +33,7 @@ export class TracksController {
   @UseGuards(JWTAuthGuard)
   @UseInterceptors(MarkUserFavouritesInterceptor)
   async findOne(@Param('id') id: string): Promise<Track> {
-    return await this.tracksService.getMetadata(id);
+    return await this.trackRepository.getMetadata(id);
   }
 
   @Get('v2/play/:id')
@@ -54,15 +54,15 @@ export class TracksController {
     },
   })
   async playTrack(@Res() res: Response, @Param('id') id: string) {
-    return await this.tracksService.getAudioContent(id, res);
+    return await this.trackRepository.getAudioContent(id, res);
   }
 
   @Get('/top50')
   @ApiOkResponse({
     type: [Track],
   })
-  async getTop50SongFromVietNam(): Promise<Track[]> {
-    return await this.tracksService.getTop50TracksVietnam();
+  async getTop50(): Promise<Track[]> {
+    return await this.trackRepository.getTop50();
   }
 
   @Get('/explore')
@@ -72,7 +72,7 @@ export class TracksController {
   async getTrackByGenre(
     @Query() explorePlaylistTrack: ExplorePlaylistTrackDTO,
   ) {
-    return await this.tracksService.getExploreTrack(
+    return await this.trackRepository.getExploreTrack(
       explorePlaylistTrack.playlistName,
     );
   }

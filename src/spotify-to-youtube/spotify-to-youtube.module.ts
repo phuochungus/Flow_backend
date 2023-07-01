@@ -5,11 +5,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import SpotifyToYoutubeSchema, {
   SpotifyToYoutube,
 } from './schemas/spotify-to-youtube.schema';
-import {
-  YoutubeMusicService,
-  SearchMusicService,
-} from '../youtube-music/youtube-music.service';
+import { YoutubeMusicService } from '../youtube-music/youtube-music.service';
 import { SpotifyApiModule } from '../spotify-api/spotify-api.module';
+import { SearchMusicService } from '../abstract/abstract';
 
 @Module({
   imports: [

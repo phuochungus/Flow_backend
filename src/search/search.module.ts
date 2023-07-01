@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { SearchController } from './search.controller';
 import { SpotifyApiModule } from 'src/spotify-api/spotify-api.module';
-import { SearchService, SpotifySearchService } from './search.service';
+import { SpotifySearchService } from './search.service';
+import { SearchService } from '../abstract/abstract';
 
 @Module({
   imports: [SpotifyApiModule],

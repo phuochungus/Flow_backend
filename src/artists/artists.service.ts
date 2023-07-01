@@ -10,15 +10,8 @@ import { TrackSimplifyWithViewCount } from '../tracks/entities/track-simplify-wi
 import { YoutubeApiService } from '../youtube-api/youtube-api.service';
 import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 import { Track } from '../tracks/entities/track.entity';
+import { ArtistRepository } from '../abstract/abstract';
 
-export abstract class ArtistRepository {
-  abstract findOne(id: string): Promise<Artist>;
-  abstract findManyRaw(ids: string[]): Promise<SpotifyApi.ArtistObjectFull[]>;
-  abstract findPlaylistArtistsRaw(
-    id: string,
-  ): Promise<SpotifyApi.ArtistObjectFull[]>;
-  abstract findTopArtists(): Promise<SimplifiedArtistWithImages[]>;
-}
 @Injectable()
 export class SpotifyArtistRepository implements ArtistRepository {
   constructor(

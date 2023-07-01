@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { LyricsRepository, MusixmatchLyricsRepository } from './lyrics.service';
+import { LyricsRepository } from '../abstract/abstract';
 
 @Controller('lyrics')
 export class LyricsController {

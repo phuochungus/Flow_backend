@@ -5,11 +5,7 @@ import { Album, AlbumType, EntityType } from './schemas/album.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { SpotifyApiService } from '../spotify-api/spotify-api.service';
-
-export abstract class AlbumRepository {
-  abstract findOne(id: string): Promise<Album>;
-  abstract findMany(ids: string[]): Promise<Album[]>;
-}
+import { AlbumRepository } from '../abstract/abstract';
 
 @Injectable()
 export class SpotifyAlbumRepository implements AlbumRepository {
@@ -86,8 +82,12 @@ export class SpotifyAlbumRepository implements AlbumRepository {
   }
 
   private async storeAlbumToDb(album: Album) {
-    const createdAlbumDoc = new this.AlbumsModel(album);
-    return await createdAlbumDoc.save();
+    try {
+      const createdAlbumDoc = new this.AlbumsModel(album);
+      return await createdAlbumDoc.save();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async findMany(ids: string[]): Promise<Album[]> {
