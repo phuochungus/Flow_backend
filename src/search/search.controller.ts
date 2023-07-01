@@ -10,7 +10,7 @@ export class SearchController {
 
   @Get()
   async find(@Query() queryTrackDto: QueryTrackDTO) {
-    return await this.searchService.searchInSpotify(
+    return await this.searchService.search(
       queryTrackDto.query,
       queryTrackDto.page,
     );

@@ -1,18 +1,18 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Album, AlbumType, EntityType } from './schemas/album.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 
-export interface IAlbumsService {
-  findOne(id: string): Promise<Album>;
-  findMany(ids: string[]): Promise<Album[]>;
+export abstract class AlbumRepository {
+  abstract findOne(id: string): Promise<Album>;
+  abstract findMany(ids: string[]): Promise<Album[]>;
 }
 
 @Injectable()
-export class AlbumsService implements IAlbumsService {
+export class SpotifyAlbumRepository implements AlbumRepository {
   constructor(
     @InjectModel(Album.name)
     private AlbumsModel: Model<Album>,
@@ -62,7 +62,7 @@ export class AlbumsService implements IAlbumsService {
       ),
       track: fullAlbumObject.tracks.items.map(
         ({ id, name, duration_ms, artists }) => {
-          return {
+          const track = {
             id,
             name,
             type: EntityType.track,
@@ -72,12 +72,14 @@ export class AlbumsService implements IAlbumsService {
             }),
             images: fullAlbumObject.images,
           };
+
+          this.cacheManager.set(`track_${id}`, track);
+          return track;
         },
       ),
     };
 
     this.cacheManager.set(`album_${id}`, album);
-
     this.storeAlbumToDb(album);
 
     return album;

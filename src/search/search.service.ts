@@ -2,26 +2,31 @@ import { Inject, Injectable } from '@nestjs/common';
 import { SearchResult } from './dto/search-track.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 import Fuse from 'fuse.js';
 import { SimplifiedAlbumWithPopularity } from '../albums/entities/simplified-album-for-search.dto';
 import { EntityType } from '../albums/schemas/album.schema';
 import { SimplifiedArtistWithPopulary } from '../artists/entities/simplified-artist-for-search.entity';
 import { SimplifedTrackWithPopularity } from '../tracks/entities/simplify-track-for-search.dto';
+import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 
 export type SimplifiedEntity =
   | SimplifedTrackWithPopularity
   | SimplifiedAlbumWithPopularity
   | SimplifiedArtistWithPopulary;
 
+export abstract class SearchService {
+  abstract search(query: string, page: number): Promise<SearchResult>;
+}
+
 @Injectable()
-export class SearchService {
+export class SpotifySearchService implements SearchService {
   constructor(
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly spotifyApiService: SpotifyApiService,
   ) {}
-  async searchInSpotify(
+
+  async search(
     queryString: string,
     page: number = 0,
   ): Promise<SearchResult> {

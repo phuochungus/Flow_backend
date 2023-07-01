@@ -6,9 +6,9 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AlbumsService } from './albums.service';
+import { AlbumRepository, SpotifyAlbumRepository } from './albums.service';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
-import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
+import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.interceptor';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Album } from './schemas/album.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -18,7 +18,7 @@ import { Cache } from 'cache-manager';
 @Controller('albums')
 export class AlbumsController {
   constructor(
-    private readonly albumsService: AlbumsService,
+    private readonly albumRepository: AlbumRepository,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
   ) {}
@@ -34,7 +34,7 @@ export class AlbumsController {
     );
     if (albumInfo) return albumInfo;
     else {
-      const album = await this.albumsService.findOne(id);
+      const album = await this.albumRepository.findOne(id);
       this.cacheManager.set(`album_${id}`, album);
       return album;
     }

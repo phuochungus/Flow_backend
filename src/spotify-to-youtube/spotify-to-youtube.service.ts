@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   NotFoundException,
   OnModuleInit,
@@ -12,11 +11,8 @@ import { toSeconds, parse } from 'iso8601-duration';
 import { InjectModel } from '@nestjs/mongoose';
 import { SpotifyToYoutube } from './schemas/spotify-to-youtube.schema';
 import { Model } from 'mongoose';
-import {
-  ISearchMusic,
-  ISearchMusicToken,
-  YoutubeMusicService,
-} from '../youtube-music/youtube-music.service';
+import { SearchMusicService } from '../youtube-music/youtube-music.service';
+import { SpotifyApiService } from '../spotify-api/spotify-api.service';
 
 export type YoutubeVideo = {
   youtubeId: string;
@@ -26,14 +22,23 @@ export type YoutubeVideo = {
   duration: { totalSeconds: number };
 };
 
+export abstract class SpotifyToYoutubeSearcherService {
+  abstract convertSpotifyIdToYoutubeId(id: string): Promise<string>;
+  abstract converSpotifyContentToYoutubeId(
+    content: SpotifyApi.SingleTrackResponse,
+  ): Promise<string>;
+}
+
 @Injectable()
-export class SpotifyToYoutubeService implements OnModuleInit {
+export class SpotifyToYoutubeService
+  implements OnModuleInit, SpotifyToYoutubeSearcherService
+{
   constructor(
     @InjectModel(SpotifyToYoutube.name)
     private readonly spotifyToYoutubeModel: Model<SpotifyToYoutube>,
     private readonly youtubeApiService: YoutubeApiService,
-    @Inject(ISearchMusicToken)
-    private readonly youtubeMusicService: ISearchMusic,
+    private readonly youtubeMusicService: SearchMusicService,
+    private readonly spotifyApiService: SpotifyApiService,
   ) {}
   private spotifyToYoutubeMusic;
 
@@ -44,23 +49,14 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     });
   }
 
-  async getYoutubeIdFromSpotify(
-    spotifyTrack: SpotifyApi.SingleTrackResponse,
-  ): Promise<string> {
-    const youtubeId = await this.getYoutubeIdFromSpotifyTrack(spotifyTrack);
-    // console.log(youtubeId);
-    return youtubeId;
+  async convertSpotifyIdToYoutubeId(id: string): Promise<string> {
+    const spotifyContent = (
+      await this.spotifyApiService.spotifyWebApi.getTrack(id)
+    ).body;
+    return await this.converSpotifyContentToYoutubeId(spotifyContent);
   }
 
-  private async storeDb(spotifyId: string, youtubeId: string) {
-    const createdDoc = new this.spotifyToYoutubeModel({
-      spotifyId: spotifyId,
-      youtubeId: youtubeId,
-    });
-    await createdDoc.save();
-  }
-
-  async getYoutubeIdFromSpotifyTrack(
+  async converSpotifyContentToYoutubeId(
     spotifyTrack: SpotifyApi.SingleTrackResponse,
   ): Promise<string> {
     const doc = await this.spotifyToYoutubeModel.findOne({
@@ -85,7 +81,7 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     }
 
     const searchResults: YoutubeVideo[] =
-      await this.youtubeMusicService.searchMusics(
+      await this.youtubeMusicService.searchMusicContent(
         spotifyTrack.name + spotifyTrack.artists.map((e) => e.name),
       );
 
@@ -135,5 +131,13 @@ export class SpotifyToYoutubeService implements OnModuleInit {
     });
 
     return transformToOriginFormatArray;
+  }
+
+  private async storeDb(spotifyId: string, youtubeId: string) {
+    const createdDoc = new this.spotifyToYoutubeModel({
+      spotifyId: spotifyId,
+      youtubeId: youtubeId,
+    });
+    await createdDoc.save();
   }
 }

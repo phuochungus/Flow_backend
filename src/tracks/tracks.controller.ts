@@ -10,7 +10,7 @@ import {
 import { TracksService } from './tracks.service';
 import { Response } from 'express';
 import JWTAuthGuard from 'src/auth/guards/jwt.guard';
-import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-user-favourites.interceptor';
+import { MarkUserFavouritesInterceptor } from 'src/interceptors/mark-favourites.interceptor';
 import ExplorePlaylistTrackDTO from './dto/explore-playlist-track.dto';
 import {
   ApiBearerAuth,

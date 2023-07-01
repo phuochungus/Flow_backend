@@ -12,8 +12,12 @@ import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
 import { Lyrics } from '../tracks/entities/lyrics.entity';
 
+export abstract class LyricsRepository {
+  abstract findOne(id: string): Promise<Lyrics[]>;
+}
+
 @Injectable()
-export class LyricsService {
+export class MusixmatchLyricsRepository implements LyricsRepository {
   constructor(
     @InjectModel(TrackLyrics.name)
     private trackLyricsModel: Model<TrackLyrics>,
@@ -21,10 +25,10 @@ export class LyricsService {
     private readonly httpService: HttpService,
   ) {}
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Lyrics[]> {
     const cacheResult = await this.cacheManager.get(`lyrics_${id}`);
     if (cacheResult) {
-      if (cacheResult != 'null') return cacheResult;
+      if (cacheResult != 'null') return cacheResult as Lyrics[];
       else throw new NotFoundException();
     }
 

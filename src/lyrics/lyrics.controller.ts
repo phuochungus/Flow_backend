@@ -1,9 +1,9 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { LyricsService } from './lyrics.service';
+import { LyricsRepository, MusixmatchLyricsRepository } from './lyrics.service';
 
 @Controller('lyrics')
 export class LyricsController {
-  constructor(private readonly lyricsService: LyricsService) {}
+  constructor(private readonly lyricsService: LyricsRepository) {}
 
   @Get('/:id')
   async findOne(@Param('id') id: string) {

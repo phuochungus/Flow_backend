@@ -1,6 +1,4 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
-import { SpotifyApiService } from 'src/spotify-api/spotify-api.service';
-import { HttpService } from '@nestjs/axios';
 import { SimplifiedArtistWithImages } from './entities/simplified-artist-with-images.entity';
 import { Artist } from './entities/artist.entity';
 import { EntityType } from '../albums/schemas/album.schema';
@@ -10,14 +8,19 @@ import _ from 'lodash';
 import { SpotifyToYoutubeService } from '../spotify-to-youtube/spotify-to-youtube.service';
 import { TrackSimplifyWithViewCount } from '../tracks/entities/track-simplify-with-view-count.entity';
 import { YoutubeApiService } from '../youtube-api/youtube-api.service';
+import { SpotifyApiService } from '../spotify-api/spotify-api.service';
+import { Track } from '../tracks/entities/track.entity';
 
-export interface IArtistsService {
-  findOne(id: string): Promise<Artist>;
-  findManyRaw(ids: string[]): Promise<SpotifyApi.ArtistObjectFull[]>;
-  findPlaylistArtistsRaw(id: string): Promise<SpotifyApi.ArtistObjectFull[]>;
+export abstract class ArtistRepository {
+  abstract findOne(id: string): Promise<Artist>;
+  abstract findManyRaw(ids: string[]): Promise<SpotifyApi.ArtistObjectFull[]>;
+  abstract findPlaylistArtistsRaw(
+    id: string,
+  ): Promise<SpotifyApi.ArtistObjectFull[]>;
+  abstract findTopArtists(): Promise<SimplifiedArtistWithImages[]>;
 }
 @Injectable()
-export class ArtistsService implements IArtistsService {
+export class SpotifyArtistRepository implements ArtistRepository {
   constructor(
     private readonly spotifyApiService: SpotifyApiService,
     @Inject(CACHE_MANAGER)
@@ -104,11 +107,22 @@ export class ArtistsService implements IArtistsService {
                     (async () => {
                       try {
                         const youtubeId =
-                          await this.spotifyToYoutubeService.getYoutubeIdFromSpotifyTrack(
-                            trackInfo,
+                          await this.spotifyToYoutubeService.convertSpotifyIdToYoutubeId(
+                            trackInfo.id,
                           );
                         const viewCount =
                           await this.youtubeApiService.getViewCount(youtubeId);
+                        const track: Track = {
+                          id: trackInfo.id,
+                          name: trackInfo.name,
+                          type: EntityType.track,
+                          duration_ms: trackInfo.duration_ms,
+                          images: trackInfo.album.images,
+                          artists: trackInfo.artists.map((artist) => {
+                            return { id: artist.id, name: artist.name };
+                          }),
+                        };
+                        this.cacheManager.set(`track_${trackInfo.id}`, track);
                         return resolve({
                           id: trackInfo.id,
                           name: trackInfo.name,
@@ -168,7 +182,7 @@ export class ArtistsService implements IArtistsService {
     }
   }
 
-  async getTypicalArtists(): Promise<SimplifiedArtistWithImages[]> {
+  async findTopArtists(): Promise<SimplifiedArtistWithImages[]> {
     const PLAYLIST_ID = '37i9dQZEVXbLdGSmz6xilI';
     const artists = await this.findPlaylistArtistsRaw(PLAYLIST_ID);
     return artists.map((e) => {
@@ -181,7 +195,9 @@ export class ArtistsService implements IArtistsService {
     });
   }
 
-  async findPlaylistArtistsRaw(id: string): Promise<SpotifyApi.ArtistObjectFull[]> {
+  async findPlaylistArtistsRaw(
+    id: string,
+  ): Promise<SpotifyApi.ArtistObjectFull[]> {
     const cacheResult = await this.cacheManager.get(`playlistArtists_${id}`);
     if (cacheResult) return cacheResult as SpotifyApi.ArtistObjectFull[];
 
