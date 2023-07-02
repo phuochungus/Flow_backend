@@ -20,10 +20,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     if (createUserDto.password)
-      createUserDto.password = hashSync(
-        createUserDto.password,
-        process.env.SALT || 12,
-      );
+      createUserDto.password = hashSync(createUserDto.password, 12);
 
     try {
       const createdUser = new this.userModel(createUserDto);
