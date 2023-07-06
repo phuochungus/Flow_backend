@@ -96,8 +96,17 @@ export class SpotifyAlbumRepository implements AlbumRepository {
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
       const cacheResult = await this.cacheManager.get(`album_${id}`);
-      if (cacheResult) responseArray.push(cacheResult as Album);
-      else queryIds.push(id);
+      if (cacheResult) {
+        responseArray.push(cacheResult as Album);
+      } else {
+        const albumFromDB = await this.AlbumsModel.findOne(
+          { id },
+          { _id: false },
+        );
+        if (albumFromDB) {
+          responseArray.push(albumFromDB);
+        } else queryIds.push(id);
+      }
     }
 
     let fullAlbumObjects: SpotifyApi.AlbumObjectFull[];
