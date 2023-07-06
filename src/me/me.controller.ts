@@ -84,7 +84,7 @@ export class MeController {
     schema: {
       type: 'object',
       properties: {
-        id: { type: 'string' },
+        id: { example: '1ex8euBuzVyqjThnYfwY2k' },
       },
     },
   })
