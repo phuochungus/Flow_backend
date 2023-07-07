@@ -149,7 +149,7 @@ export class SpotifyAlbumRepository implements AlbumRepository {
     });
 
     for (let i = 0; i < albums.length; ++i) {
-      this.cacheManager.set(`album_${fullAlbumObjects[i].id}`, albums[i]);
+      this.cacheManager.set(`album_${albums[i].id}`, albums[i]);
       this.storeAlbumToDb(albums[i]);
     }
 
