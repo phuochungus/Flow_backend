@@ -163,7 +163,6 @@ export class SpotifyArtistRepository implements ArtistRepository {
       return artistMetaData;
     } catch (error) {
       if (error.body.error.status >= 400) {
-        this.cacheManager.set(`artist_${artistId}`, 'null');
         return null;
       }
       if (!(error instanceof HttpException)) console.error(error);
