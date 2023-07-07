@@ -152,21 +152,8 @@ export class MeService {
 
   async displayPlayHistory(user: any): Promise<Track[]> {
     const ids: string[] = user.recentlyPlayed;
-    const promises = ids.map(async (e) => {
-      return await this.tracksService.getMetadata(e);
-    });
-    let result: {
-      id: string;
-      name: string;
-      type: EntityType;
-      duration_ms: number;
-      images: SpotifyApi.ImageObject[];
-      artists: { id: string; name: string }[];
-    }[] = [];
-    await Promise.all(promises).then((value) => {
-      result = value;
-    });
-    return result;
+    const tracks = await this.tracksService.getManyMetadata(ids);
+    return tracks;
   }
 
   async addToFavourite(user: any, id: string) {
