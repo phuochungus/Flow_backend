@@ -6,10 +6,6 @@ import { Lyrics } from '../tracks/entities/lyrics.entity';
 import { Track } from '../tracks/entities/track.entity';
 import { Response } from 'express';
 
-export abstract class APIWrapper {
-  abstract authorize(): void;
-}
-
 export abstract class AlbumRepository {
   abstract findOne(id: string): Promise<Album>;
   abstract findMany(ids: string[]): Promise<Album[]>;
