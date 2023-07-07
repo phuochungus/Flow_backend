@@ -159,8 +159,9 @@ export class SpotifyTrackRepository implements TrackRepository {
         }),
       };
     });
-    tracksResponse.forEach((track) => {
-      this.cacheManager.set(`track_${track.track.id}`, track.track);
+    tracks.forEach(async (track) => {
+      if (!(await this.cacheManager.get(`track_${track.id}`)))
+        this.cacheManager.set(`track_${track.id}`, track);
     });
 
     this.cacheManager.set(`playlist_${id}`, tracks);
