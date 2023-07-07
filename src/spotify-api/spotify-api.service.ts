@@ -5,7 +5,7 @@ import { APIWrapper } from '../abstract/abstract';
 
 @Injectable()
 export class SpotifyApiService implements APIWrapper {
-  constructor(public readonly spotifyWebApi: SpotifyWebApi) {
+  constructor(public spotifyWebApi: SpotifyWebApi) {
     this.authorize();
     setInterval(this.authorize, 3300000);
   }
