@@ -33,18 +33,14 @@ export class SpotifyArtistRepository implements ArtistRepository {
       else queryIds.push(id);
     }
 
-    let trackResponse;
+    let artistsResponse;
     if (queryIds.length > 0)
-      trackResponse = (
+      artistsResponse = (
         await this.spotifyApiService.spotifyWebApi.getArtists(queryIds)
       ).body.artists;
-    else trackResponse = [];
+    else artistsResponse = [];
 
-    for (let i = 0; i < trackResponse.length; ++i) {
-      this.cacheManager.set(`artist_${trackResponse[i].id}`, trackResponse[i]);
-    }
-
-    responseArray = [...responseArray, ...trackResponse];
+    responseArray = [...responseArray, ...artistsResponse];
 
     responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
 
