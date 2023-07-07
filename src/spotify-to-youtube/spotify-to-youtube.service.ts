@@ -130,6 +130,10 @@ export class SpotifyToYoutubeService
       spotifyId: spotifyId,
       youtubeId: youtubeId,
     });
-    await createdDoc.save();
+    try {
+      return await createdDoc.save();
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
