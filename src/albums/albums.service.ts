@@ -91,72 +91,76 @@ export class SpotifyAlbumRepository implements AlbumRepository {
   }
 
   async findMany(ids: string[]): Promise<Album[]> {
-    let queryIds = [];
-    let responseArray: Album[] = [];
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      const cacheResult = await this.cacheManager.get(`album_${id}`);
-      if (cacheResult) {
-        responseArray.push(cacheResult as Album);
-      } else {
-        const albumFromDB = await this.AlbumsModel.findOne(
-          { id },
-          { _id: false },
-        );
-        if (albumFromDB) {
-          responseArray.push(albumFromDB);
-        } else queryIds.push(id);
+    try {
+      let queryIds = [];
+      let responseArray: Album[] = [];
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const cacheResult = await this.cacheManager.get(`album_${id}`);
+        if (cacheResult) {
+          responseArray.push(cacheResult as Album);
+        } else {
+          const albumFromDB = await this.AlbumsModel.findOne(
+            { id },
+            { _id: false },
+          );
+          if (albumFromDB) {
+            responseArray.push(albumFromDB);
+          } else queryIds.push(id);
+        }
       }
+
+      let fullAlbumObjects: SpotifyApi.AlbumObjectFull[];
+      if (queryIds.length > 0)
+        fullAlbumObjects = (
+          await this.spotifyApiService.spotifyWebApi.getAlbums(queryIds)
+        ).body.albums;
+      else fullAlbumObjects = [];
+      const albums = fullAlbumObjects.map((fullAlbumObject) => {
+        return {
+          id: fullAlbumObject.id,
+          type: EntityType.album,
+          album_type: AlbumType[fullAlbumObject.album_type.toString()],
+          name: fullAlbumObject.name,
+          images: fullAlbumObject.images,
+          artists: fullAlbumObject.artists.map(({ id, name }) => {
+            return { id, name };
+          }),
+          total_duration: fullAlbumObject.tracks.items.reduce(
+            (accumulate, current) => {
+              return accumulate + current.duration_ms;
+            },
+            0,
+          ),
+          track: fullAlbumObject.tracks.items.map(
+            ({ id, name, duration_ms, artists }) => {
+              return {
+                id,
+                name,
+                type: EntityType.track,
+                duration_ms,
+                artists: artists.map(({ id, name }) => {
+                  return { id, name };
+                }),
+                images: fullAlbumObject.images,
+              };
+            },
+          ),
+        };
+      });
+
+      for (let i = 0; i < albums.length; ++i) {
+        this.cacheManager.set(`album_${albums[i].id}`, albums[i]);
+        this.storeAlbumToDb(albums[i]);
+      }
+
+      responseArray = [...responseArray, ...albums];
+
+      responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+      return responseArray;
+    } catch (error) {
+      console.error(error);
     }
-
-    let fullAlbumObjects: SpotifyApi.AlbumObjectFull[];
-    if (queryIds.length > 0)
-      fullAlbumObjects = (
-        await this.spotifyApiService.spotifyWebApi.getAlbums(queryIds)
-      ).body.albums;
-    else fullAlbumObjects = [];
-    const albums = fullAlbumObjects.map((fullAlbumObject) => {
-      return {
-        id: fullAlbumObject.id,
-        type: EntityType.album,
-        album_type: AlbumType[fullAlbumObject.album_type.toString()],
-        name: fullAlbumObject.name,
-        images: fullAlbumObject.images,
-        artists: fullAlbumObject.artists.map(({ id, name }) => {
-          return { id, name };
-        }),
-        total_duration: fullAlbumObject.tracks.items.reduce(
-          (accumulate, current) => {
-            return accumulate + current.duration_ms;
-          },
-          0,
-        ),
-        track: fullAlbumObject.tracks.items.map(
-          ({ id, name, duration_ms, artists }) => {
-            return {
-              id,
-              name,
-              type: EntityType.track,
-              duration_ms,
-              artists: artists.map(({ id, name }) => {
-                return { id, name };
-              }),
-              images: fullAlbumObject.images,
-            };
-          },
-        ),
-      };
-    });
-
-    for (let i = 0; i < albums.length; ++i) {
-      this.cacheManager.set(`album_${albums[i].id}`, albums[i]);
-      this.storeAlbumToDb(albums[i]);
-    }
-
-    responseArray = [...responseArray, ...albums];
-
-    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-
-    return responseArray;
   }
 }

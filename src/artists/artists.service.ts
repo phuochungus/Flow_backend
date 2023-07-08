@@ -23,28 +23,32 @@ export class SpotifyArtistRepository implements ArtistRepository {
   ) {}
 
   async findManyRaw(ids: string[]): Promise<SpotifyApi.ArtistObjectFull[]> {
-    let queryIds = [];
-    let responseArray = [];
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      const cacheResult = await this.cacheManager.get(`artist_${id}`);
-      if (cacheResult)
-        responseArray.push(cacheResult as SpotifyApi.ArtistObjectFull);
-      else queryIds.push(id);
+    try {
+      let queryIds = [];
+      let responseArray = [];
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const cacheResult = await this.cacheManager.get(`artist_${id}`);
+        if (cacheResult)
+          responseArray.push(cacheResult as SpotifyApi.ArtistObjectFull);
+        else queryIds.push(id);
+      }
+
+      let artistsResponse;
+      if (queryIds.length > 0)
+        artistsResponse = (
+          await this.spotifyApiService.spotifyWebApi.getArtists(queryIds)
+        ).body.artists;
+      else artistsResponse = [];
+
+      responseArray = [...responseArray, ...artistsResponse];
+
+      responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+      return responseArray;
+    } catch (error) {
+      console.error(error);
     }
-
-    let artistsResponse;
-    if (queryIds.length > 0)
-      artistsResponse = (
-        await this.spotifyApiService.spotifyWebApi.getArtists(queryIds)
-      ).body.artists;
-    else artistsResponse = [];
-
-    responseArray = [...responseArray, ...artistsResponse];
-
-    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-
-    return responseArray;
   }
 
   async findOne(artistId: string): Promise<Artist> {
