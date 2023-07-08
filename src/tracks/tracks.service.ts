@@ -169,42 +169,46 @@ export class SpotifyTrackRepository implements TrackRepository {
   }
 
   async getManyMetadata(ids: string[]): Promise<Track[]> {
-    let queryIds = [];
-    let responseArray: Track[] = [];
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      const cacheResult = await this.cacheManager.get(`track_${id}`);
-      if (cacheResult) responseArray.push(cacheResult as Track);
-      else queryIds.push(id);
+    try {
+      let queryIds = [];
+      let responseArray: Track[] = [];
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const cacheResult = await this.cacheManager.get(`track_${id}`);
+        if (cacheResult) responseArray.push(cacheResult as Track);
+        else queryIds.push(id);
+      }
+
+      let trackResponse: Track[] = [];
+      if (queryIds.length > 0)
+        trackResponse = (
+          await this.spotifyApiService.spotifyWebApi.getTracks(queryIds)
+        ).body.tracks.map((track) => {
+          return {
+            id: track.id,
+            name: track.name,
+            type: EntityType.track,
+            images: track.album.images,
+            duration_ms: track.duration_ms,
+            artists: track.artists.map(({ id, name }) => {
+              return { id, name };
+            }),
+          };
+        });
+      else trackResponse = [];
+
+      for (let i = 0; i < trackResponse.length; ++i) {
+        this.cacheManager.set(`track_${trackResponse[i].id}`, trackResponse[i]);
+      }
+
+      responseArray = [...responseArray, ...trackResponse];
+
+      responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+      return responseArray;
+    } catch (error) {
+      console.error(error);
     }
-
-    let trackResponse: Track[] = [];
-    if (queryIds.length > 0)
-      trackResponse = (
-        await this.spotifyApiService.spotifyWebApi.getTracks(queryIds)
-      ).body.tracks.map((track) => {
-        return {
-          id: track.id,
-          name: track.name,
-          type: EntityType.track,
-          images: track.album.images,
-          duration_ms: track.duration_ms,
-          artists: track.artists.map(({ id, name }) => {
-            return { id, name };
-          }),
-        };
-      });
-    else trackResponse = [];
-
-    for (let i = 0; i < trackResponse.length; ++i) {
-      this.cacheManager.set(`track_${trackResponse[i].id}`, trackResponse[i]);
-    }
-
-    responseArray = [...responseArray, ...trackResponse];
-
-    responseArray.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
-
-    return responseArray;
   }
 
   async getExploreTrack(genreName: string): Promise<Track[]> {
