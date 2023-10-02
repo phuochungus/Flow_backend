@@ -13,6 +13,7 @@ import { TracksModule } from './tracks/tracks.module';
 import { UsersModule } from './users/users.module';
 import { YoutubeApiModule } from './youtube-api/youtube-api.module';
 import compression from 'compression';
+import { LyricsModule } from './lyrics/lyrics.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -60,6 +61,7 @@ async function bootstrap() {
       SearchModule,
       YoutubeApiModule,
       SpotifyToYoutubeModule,
+      LyricsModule,
     ],
   });
   SwaggerModule.setup('api', app, document);

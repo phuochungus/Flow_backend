@@ -36,7 +36,10 @@ export class AuthController {
   async redirect(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
 
-    res.status(302).redirect('flow://callback?token=' + accessToken);
+    res.status(200).send(accessToken);
+
+    //COMMENTED THE LINE USE IN FLOW APP
+    //res.status(302).redirect('flow://callback?token=' + accessToken);
   }
 
   @Get('/redirect')
@@ -53,7 +56,10 @@ export class AuthController {
   @UseGuards(FacebookAuthGuard)
   async redirectFacebook(@Request() req: any, @Res() res) {
     const { accessToken } = await this.authService.findOneOrCreate(req.user);
-    res.status(302).redirect(`flow://callback?token=${accessToken}`);
+    res.status(200).send(accessToken);
+    
+    //COMMENTED THE LINE USE IN FLOW APP
+    //res.status(302).redirect(`flow://callback?token=${accessToken}`);
   }
 
   @Post('/local')
